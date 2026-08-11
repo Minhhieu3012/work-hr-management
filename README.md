@@ -1,12 +1,12 @@
-# Creative Agency Hub
+# Work & HR Management System
 
-> A modern work management platform for creative agencies. Built with PHP & MySQL. It streamlines task collaboration, content approval workflows, and client communication through Kanban-style tracking and a dedicated client portal.
+> Comprehensive Human Resource & Task Management Platform built with PHP (Custom MVC architecture) & MySQL. It streamlines organizational hierarchy, employee contracts, attendance/leave management, project workflows (Kanban & Gantt), and interactive client collaboration.
 
 ---
 
 ## Overview
 
-**Creative Agency Hub** is a specialized management system for creative agencies. The project provides comprehensive digital solutions ranging from human resource management (HRM) and workflow tracking (Kanban/Gantt) to an interactive client portal (Client Portal).
+**Work & HR Management** (`work-hr-management`) is an all-in-one enterprise management system designed to connect human resource operations directly with day-to-day task execution. The system features modular architecture covering HR record management, payroll/attendance, interactive task boards, and a dedicated Client Portal for external stakeholders.
 
 ## Tech Stack
 
@@ -14,61 +14,60 @@
 
 Core:
 
-- HTML5, CSS3, Vanilla JavaScript
+- HTML5, CSS3, Vanilla JavaScript (ES6+)
 
 UI Framework:
 
-- Bootstrap 5 (Customized Base Template)
+- Bootstrap 5 (Customized)
 
 Features:
 
-- Dynamic Kanban Board (Drag & Drop UI)
-- Gantt Charts
-- Advanced Data Filtering (project, assignee, status, deadline)
+- Dynamic Kanban Board
+- Gantt Chart Visualizer
+- Client Portal Dashboard
+- UI State Components (Modals, Toasts, Empty States, Sidebars)
 
 ### Backend:
 
 Core:
 
-- PHP (Custom MVC Architecture), OOP
+- PHP 8+ (Custom Object-Oriented MVC Architecture)
+- Routing & Security: Custom Dynamic Router, Role-Based Access Control (RBAC) Middleware, JWT Token Handler, Prepared Statements (SQL Injection Protection), XSS & CSRF Handling.
 
 Database:
 
-- MySQL (Relational schema with strict Foreign Keys, utf8mb4)
-
-Architecture & Security:
-
-- Custom Routing & Role-Based Middleware (RBAC)
-- Session Management & JWT Authentication
-- Protection against SQL Injection, XSS, and CSRF
+- MySQL (Relational Schema with Strict Foreign Keys & utf8mb4 encoding).
 
 ---
 
-## RBAC - Role Based Access Control
+## Role-Based Access Control (RBAC)
 
-The system operates with four main role groups:
+The system manages authorization through defined security middleware across four key roles:
 
-1. **Admin:** Manages accounts, department categories, job titles, and establishes the organizational structure.
-2. **Manager:** Creates projects, assigns tasks, approves requests (leave, business trips), and monitors the Dashboard.
-3. **Employee:** Updates profiles, records attendance, receives tasks, reports progress, and submits requests.
-4. **Client:** Accesses a separate Client Portal to track project progress.
+1. **Admin:** System-wide administration, user/account approvals, organization structure, and global security management.
+2. **Manager:** Department management, project creation, task assignment, employee leave approval, and workflow review.
+3. **Employee:** Profile management, daily web attendance tracking, task status updates (Kanban/Gantt), comment/attachment management, and leave requests.
+4. **Client:** Restricted external access via Client Portal to monitor project milestones, task statuses, and submit support inquiries.
 
 ---
 
-## Core Features
+## Core Modules
 
 ### 1. Human Resources Management (HRM)
 
-- **Electronic Records:** Manages employee information, employment contracts, and insurance (CRUD).
-- **Timekeeping & Payroll:** Daily web-check-in; system automatically calculates payroll based on working days and KPIs.
-- **Leave Management:** Submits requests, approves them, and automatically deducts leave from the payroll fund.
+- **Employee Directory & Contracts:** Complete CRUD for employee profiles, position assignments, department mapping, and document/contract tracking.
+- **Department & Organization Setup:** Hierarchical structuring of departments and position tiers.
 
-### 2. Work & Project Management
+### 2. Timekeeping & Leave Management
 
-- **Dashboard:** Visually track tasks through Kanban and Gantt Chart interfaces.
-- **Task Management:** CRUD tasks, assign assigners and deadlines.
-- **Interaction Flow:** Change status (To do -> Doing -> Review -> Done), comment threads, and attach documents to each task.
-- **Approval Flow:** Submit -> Review -> Approve/Reject.
+- **Attendance Tracking:** Daily web-based check-in/check-out logs.
+- **Leave Request Workflow:** Employees submit leave requests -> Managers review and approve/reject -> Automatic updates to leave balance adjustments.
+
+### 3. Project & Task Flow
+
+- **Visual Workspaces:** Interactive Kanban boards and Gantt charts for project timelines.
+- **Task Lifecycle:** Full task management (Create -> Assign -> Execute -> Activity Tracking -> Approval/Review -> Completion).
+- **Collaboration Tools:** Comments, file attachments, and activity logs for each task.
 
 ---
 
@@ -77,60 +76,62 @@ The system operates with four main role groups:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Minhhieu3012/creative-agency-hub.git
-cd creative-agency-hub
+git clone https://github.com/Minhhieu3012/work-hr-management.git
+cd work-hr-management
 ```
 
 ### 2. Environment Setup
 
 ```bash
 cp .env.example .env
-# Update DB credentials in .env (DB_HOST, DB_USER, DB_PASS, DB_NAME)
+# Update DB credentials in .env (DB_HOST, DB_NAME, DB_USER, DB_PASS)
 ```
 
 ### 3. Database Setup
 
-Create a new MySQL database and import the core schema:
+Create a new database (e.g., work_hr_management) and execute the SQL scripts in the following sequence:
 
-- Import database/schema.sql via phpMyAdmin, MySQL Workbench, or CLI.
-- Run any subsequent migration files if available.
+1. **Base Schema:**
+
+```bash
+database/schema.sql
+```
+
+2. **Migrations (in order):**
+
+```bash
+database/migrations/002_hrm_schema.sql
+database/migrations/003_employee_documents.sql
+database/migrations/004_operation_flow_schema.sql
+```
+
+3. **Seed Data (Optional):**
+
+```bash
+database/seeders/002_hrm_seed_data.sql
+database/seeders/003_auth_task_test_seed.sql
+database/seeders/004_operation_flow_seed.sql
+```
 
 ### 4. Run the Application
 
-- Start your local web server (XAMPP).
-- Ensure the document root points to the public/ directory (or the folder containing index.php).
-- Access the web via:
+### Option 1: Local Web Server (XAMPP)
 
-- Employee:
+Point your Virtual Host directory directly to the `public/` folder so `public/index.php` serves as the single entry point.
 
-```bash
-http://localhost/creative-agency-hub/app/View/auth/login.php
-```
-
-- Manager:
-
-```bash
-http://localhost/creative-agency-hub/app/View/site/index.php
-```
-
-- Client:
-
-```bash
-http://localhost/creative-agency-hub/app/View/client-portal/login-client.php
-```
+- **Base URL:** `http://localhost/work-hr-management/public/`
+- **Admin Portal:** `http://localhost/work-hr-management/public/admin/login`
+- **Staff Portal:** `http://localhost/work-hr-management/public/staff/login`
+- **Client Portal:** `http://localhost/work-hr-management/public/client/login`
 
 ---
 
-## Future Improvements
+### Option 2: PHP Built-in Server (Development)
 
-- [ ] Implement Real-time notifications for Task assignments and Approval statuses via WebSocket.
+Run the built-in server targeting the `public` directory:
 
-- [ ] Develop RESTful APIs for future Mobile App integration.
+```bash
+php -S localhost:8000 -t public
+```
 
-- [ ] Add system Audit Logs to track sensitive data changes.
-
-- [ ] Implement Soft Deletes for data recovery and compliance.
-
----
-
-_This project was developed for academic reporting purposes. Please refer to the attached source code and documentation._
+Then visit `http://localhost:8000` in your browser.
