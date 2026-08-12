@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Đăng ký Manager | Creative Agency Hub';
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$pageTitle = 'Đăng ký Manager | Work & HR Management';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $assetUrl = $assetUrl ?? ($baseUrl . '/public/assets');
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 $apiUrl = $baseUrl . '/public/api/auth/register-manager';
@@ -20,7 +20,7 @@ $apiUrl = $baseUrl . '/public/api/auth/register-manager';
     <header class="site-header">
         <a class="site-brand" href="<?php echo htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8'); ?>/site/index.php">
             <span class="site-brand-mark">CA</span>
-            <span>Creative Agency Hub</span>
+            <span>Work & HR Management</span>
         </a>
 
         <div class="site-header-actions">

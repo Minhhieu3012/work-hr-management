@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Duyệt Manager | Creative Agency Hub';
+$pageTitle = 'Duyệt Manager | Work & HR Management System';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-approve-managers';
 $topbarTitle = 'Duyệt Manager';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management System';
 
 ob_start();
 ?>

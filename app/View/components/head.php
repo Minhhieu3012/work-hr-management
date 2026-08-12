@@ -1,7 +1,7 @@
 <?php
-$pageTitle = $pageTitle ?? 'Creative Agency Hub';
+$pageTitle = $pageTitle ?? 'Work & HR Management';
 $pageCss = $pageCss ?? [];
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $assetUrl = $assetUrl ?? ($baseUrl . '/public/assets');
 
 $globalCss = [

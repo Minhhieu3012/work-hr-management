@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Creative Agency Hub | Nền tảng quản lý agency';
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$pageTitle = 'Work & HR Management | Nền tảng quản lý agency';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $assetUrl = $assetUrl ?? ($baseUrl . '/public/assets');
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 ?>
@@ -19,7 +19,7 @@ $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
     <header class="site-header">
         <a class="site-brand" href="<?php echo htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8'); ?>/site/index.php">
             <span class="site-brand-mark">CA</span>
-            <span>Creative Agency Hub</span>
+            <span>Work & HR Management</span>
         </a>
 
         <nav class="site-nav">
@@ -46,7 +46,7 @@ $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
                 <h1>Điều hành agency của bạn trong một không gian sắc nét.</h1>
 
                 <p>
-                    Creative Agency Hub gom project, task, nhân sự, tiến độ và khách hàng vào một hệ thống thống nhất,
+                    Work & HR Management gom project, task, nhân sự, tiến độ và khách hàng vào một hệ thống thống nhất,
                     giúp Manager điều phối đội ngũ mượt hơn, rõ hơn và ít cháy deadline hơn.
                 </p>
 
@@ -223,7 +223,7 @@ $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
     </main>
 
     <footer class="site-footer">
-        <span>© 2026 Creative Agency Hub</span>
+        <span>© 2026 Work & HR Management</span>
         <span>Built for project, people and beautifully boring operations.</span>
     </footer>
 </body>

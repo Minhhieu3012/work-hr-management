@@ -1,10 +1,10 @@
-DROP DATABASE IF EXISTS creative_agency;
+DROP DATABASE IF EXISTS work_hr_management;
 
-CREATE DATABASE IF NOT EXISTS creative_agency
+CREATE DATABASE IF NOT EXISTS work_hr_management
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE creative_agency;
+USE work_hr_management;
 
 -- 1. BẢNG PHÒNG BAN (Departments)
 CREATE TABLE departments (

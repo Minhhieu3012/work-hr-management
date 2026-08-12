@@ -13,7 +13,7 @@ class Database {
         // Ưu tiên đọc từ $_ENV, nếu không có thì dùng getenv
         $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
         $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
-        $db   = $_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: 'creative_agency';
+        $db   = $_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: 'work_hr_management';
         $user = $_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: 'root';
         $pass = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
 

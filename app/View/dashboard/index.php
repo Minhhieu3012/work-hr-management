@@ -3,11 +3,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$pageTitle = 'Bảng điều khiển | Creative Agency Hub';
+$pageTitle = 'Bảng điều khiển | Work & HR Management';
 $pageCss = ['dashboard.css'];
 $pageJs = ['dashboard.js'];
 $activeMenu = 'dashboard';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 $currentRole = strtolower((string)($_SESSION['user_role'] ?? 'employee'));
 
@@ -15,17 +15,17 @@ $roleCopies = [
     'admin' => [
         'topbarTitle' => 'Admin Dashboard',
         'heading' => 'Chào buổi sáng, Quản trị viên!',
-        'subtitle' => 'Theo dõi tổng quan hệ thống, tài khoản và hoạt động vận hành của Creative Agency Hub.',
+        'subtitle' => 'Theo dõi tổng quan hệ thống, tài khoản và hoạt động vận hành của Work & HR Management.',
         'projectSectionTitle' => 'Tổng quan dự án hệ thống',
-        'projectLink' => '/creative-agency-hub/app/View/tasks/projects.php',
+        'projectLink' => '/work-hr-management/app/View/tasks/projects.php',
         'projectLinkText' => 'Xem dự án',
         'resourceTitle' => 'Tổng quan nguồn lực',
-        'resourceLink' => '/creative-agency-hub/app/View/hrm/employees.php',
+        'resourceLink' => '/work-hr-management/app/View/hrm/employees.php',
         'resourceLinkText' => 'Chi tiết',
         'summaryTitle' => 'Tình hình hệ thống',
         'summaryStatus' => 'Đang vận hành',
         'summaryText' => 'Hệ thống đang hoạt động ổn định. Ưu tiên theo dõi tài khoản, nhân sự và dữ liệu vận hành.',
-        'summaryLink' => '/creative-agency-hub/app/View/hrm/employees.php',
+        'summaryLink' => '/work-hr-management/app/View/hrm/employees.php',
         'summaryLinkText' => 'Quản lý nhân sự',
     ],
     'manager' => [
@@ -33,15 +33,15 @@ $roleCopies = [
         'heading' => 'Chào buổi sáng, Quản lý!',
         'subtitle' => 'Theo dõi dự án, công việc, nhân sự và tiến độ vận hành trong ngày hôm nay.',
         'projectSectionTitle' => 'Tiến độ Dự án Trọng điểm',
-        'projectLink' => '/creative-agency-hub/app/View/tasks/projects.php',
+        'projectLink' => '/work-hr-management/app/View/tasks/projects.php',
         'projectLinkText' => 'Xem tất cả',
         'resourceTitle' => 'Phân bổ nguồn lực',
-        'resourceLink' => '/creative-agency-hub/app/View/hrm/employees.php',
+        'resourceLink' => '/work-hr-management/app/View/hrm/employees.php',
         'resourceLinkText' => 'Chi tiết',
         'summaryTitle' => 'Tình hình hôm nay',
         'summaryStatus' => 'Ổn định',
         'summaryText' => 'Ưu tiên kiểm tra tiến độ dự án, task quá hạn và hoạt động của nhân sự trong nhóm.',
-        'summaryLink' => '/creative-agency-hub/app/View/tasks/kanban.php',
+        'summaryLink' => '/work-hr-management/app/View/tasks/kanban.php',
         'summaryLinkText' => 'Mở bảng công việc',
     ],
     'employee' => [
@@ -49,15 +49,15 @@ $roleCopies = [
         'heading' => 'Chào buổi sáng, Nhân viên!',
         'subtitle' => 'Theo dõi công việc được giao, tiến độ cá nhân, chấm công và các đầu việc cần xử lý.',
         'projectSectionTitle' => 'Công việc & Dự án của tôi',
-        'projectLink' => '/creative-agency-hub/app/View/tasks/kanban.php',
+        'projectLink' => '/work-hr-management/app/View/tasks/kanban.php',
         'projectLinkText' => 'Mở Kanban',
         'resourceTitle' => 'Tình trạng công việc cá nhân',
-        'resourceLink' => '/creative-agency-hub/app/View/payroll/attendance.php',
+        'resourceLink' => '/work-hr-management/app/View/payroll/attendance.php',
         'resourceLinkText' => 'Chấm công',
         'summaryTitle' => 'Việc cần ưu tiên',
         'summaryStatus' => 'Tập trung',
         'summaryText' => 'Kiểm tra task được giao, cập nhật trạng thái đúng hạn và hoàn tất chấm công trong ngày.',
-        'summaryLink' => '/creative-agency-hub/app/View/tasks/kanban.php',
+        'summaryLink' => '/work-hr-management/app/View/tasks/kanban.php',
         'summaryLinkText' => 'Xem task của tôi',
     ],
     'client' => [
@@ -65,15 +65,15 @@ $roleCopies = [
         'heading' => 'Chào mừng Khách hàng!',
         'subtitle' => 'Theo dõi tiến độ dự án và các công việc liên quan trong cổng khách hàng.',
         'projectSectionTitle' => 'Dự án của tôi',
-        'projectLink' => '/creative-agency-hub/app/View/client-portal/projects.php',
+        'projectLink' => '/work-hr-management/app/View/client-portal/projects.php',
         'projectLinkText' => 'Xem dự án',
         'resourceTitle' => 'Tổng quan tiến độ',
-        'resourceLink' => '/creative-agency-hub/app/View/client-portal/tasks.php',
+        'resourceLink' => '/work-hr-management/app/View/client-portal/tasks.php',
         'resourceLinkText' => 'Xem task',
         'summaryTitle' => 'Trạng thái dự án',
         'summaryStatus' => 'Đang theo dõi',
         'summaryText' => 'Bạn có thể xem tiến độ và trạng thái công việc liên quan đến dự án của mình.',
-        'summaryLink' => '/creative-agency-hub/app/View/client-portal/projects.php',
+        'summaryLink' => '/work-hr-management/app/View/client-portal/projects.php',
         'summaryLinkText' => 'Client Portal',
     ],
 ];
@@ -225,7 +225,7 @@ require __DIR__ . '/../components/page-header.php';
                     <p style="padding: 10px; color: #6c757d;">Đang tải dữ liệu...</p>
                 </div>
 
-                <a href="/creative-agency-hub/app/View/tasks/activity.php" class="btn btn-soft btn-block">
+                <a href="/work-hr-management/app/View/tasks/activity.php" class="btn btn-soft btn-block">
                     Xem toàn bộ nhật ký
                 </a>
             </div>

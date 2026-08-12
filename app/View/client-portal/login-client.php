@@ -3,13 +3,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$pageTitle = 'Cổng thông tin Khách hàng | Creative Agency Hub';
+$pageTitle = 'Cổng thông tin Khách hàng | Work & HR Management';
 $pageCss   = ['auth.css'];
 $pageJs    = ['forms.js', 'auth-portal.js'];
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 $bodyClass = 'client-login-body';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $publicUrl = $baseUrl . '/public';
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 
@@ -23,7 +23,7 @@ ob_start();
         <section class="client-login-form">
             <a href="<?php echo htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8'); ?>/client-portal/login-client.php" class="client-login-brand">
                 <span class="brand-mark">CA</span>
-                <span>Creative Agency Hub</span>
+                <span>Work & HR Management</span>
             </a>
 
             <div class="client-login-title">
@@ -123,7 +123,7 @@ ob_start();
             </p>
 
             <div class="auth-legal">
-                <span>© 2026 Creative Agency Hub</span>
+                <span>© 2026 Work & HR Management</span>
                 <span>
                     <a href="#" data-disabled-demo>Bảo mật</a>
                     &nbsp;&nbsp;
@@ -136,13 +136,13 @@ ob_start();
             <img
                 class="client-login-visual-image"
                 src="<?php echo htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8'); ?>/assets/pictures/customerpagelogin.jpg"
-                alt="Creative Agency Hub client portal"
+                alt="Work & HR Management client portal"
             >
 
             <div class="client-glass-panel">
                 <div class="client-trust-line">
                     <span class="brand-mark">CA</span>
-                    <span>Creative Agency Hub</span>
+                    <span>Work & HR Management</span>
                 </div>
 
                 <h2>Dự án của bạn,<br>minh bạch từng bước.</h2>

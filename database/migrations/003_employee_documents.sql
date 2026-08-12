@@ -1,4 +1,4 @@
-USE creative_agency;
+USE work_hr_management;
 
 CREATE TABLE IF NOT EXISTS employee_documents (
     id INT AUTO_INCREMENT PRIMARY KEY,

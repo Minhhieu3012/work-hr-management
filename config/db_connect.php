@@ -3,7 +3,7 @@
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 $host = 'localhost';
-$dbname = 'creative_agency';
+$dbname = 'work_hr_management';
 $username = 'root';
 $password = ''; 
 

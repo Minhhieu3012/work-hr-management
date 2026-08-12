@@ -1,12 +1,12 @@
 <?php
-$pageTitle = $pageTitle ?? 'Creative Agency Hub';
+$pageTitle = $pageTitle ?? 'Work & HR Management';
 $pageCss = $pageCss ?? [];
 $pageJs = $pageJs ?? [];
 $activeMenu = $activeMenu ?? 'dashboard';
 $topbarTitle = $topbarTitle ?? '';
-$brandName = $brandName ?? 'Creative Agency Hub';
+$brandName = $brandName ?? 'Work & HR Management';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $assetUrl = $assetUrl ?? ($baseUrl . '/public/assets');
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 

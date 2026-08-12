@@ -4,7 +4,7 @@
 -- MỤC TIÊU: Khởi tạo 5 bảng lõi nhân sự kèm ràng buộc toàn vẹn dữ liệu
 -- =========================================================================
 
-USE creative_agency;
+USE work_hr_management;
 
 -- Tắt kiểm tra khóa ngoại tạm thời để có thể Drop bảng an toàn khi chạy lại script
 SET FOREIGN_KEY_CHECKS = 0;

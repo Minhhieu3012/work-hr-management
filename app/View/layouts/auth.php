@@ -6,11 +6,11 @@
 
 // 1. PHÒNG THỦ: Đảm bảo APP_URL luôn tồn tại để tránh Fatal Error khi mất context
 if (!defined('APP_URL')) {
-    define('APP_URL', '/creative-agency-hub/public');
+    define('APP_URL', '/work-hr-management/public');
 }
 
 // 2. KHỞI TẠO BIẾN MẶC ĐỊNH
-$pageTitle = $pageTitle ?? 'Đăng nhập | Creative Agency Hub';
+$pageTitle = $pageTitle ?? 'Đăng nhập | Work & HR Management';
 $pageCss   = $pageCss   ?? ['auth.css'];
 $pageJs    = $pageJs    ?? ['forms.js'];
 $bodyClass = $bodyClass ?? 'auth-body';

@@ -1,11 +1,11 @@
 <?php
 // Khởi tạo thông tin trang
-$pageTitle = 'Chấm công | Creative Agency Hub';
+$pageTitle = 'Chấm công | Work & HR Management';
 $pageCss = ['payroll.css', 'hrm.css'];
 $pageJs = ['payroll.js'];
 $activeMenu = 'attendance';
 $topbarTitle = 'Web Check-in';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 // Mảng history này sẽ được JavaScript ghi đè khi dữ liệu từ API tải xong
 $history = $history ?? [];
@@ -17,7 +17,7 @@ ob_start();
     <!-- Hero Section: Đồng hồ và Nút bấm -->
     <article class="attendance-hero">
         <div class="attendance-copy">
-            <span>Creative Agency Hub • Web Check-in</span>
+            <span>Work & HR Management • Web Check-in</span>
             <h1>Chấm công nhanh trong một chạm.</h1>
             <p>
                 Ghi nhận giờ vào/ra mỗi ngày, theo dõi trạng thái chuyên cần và hỗ trợ dữ liệu

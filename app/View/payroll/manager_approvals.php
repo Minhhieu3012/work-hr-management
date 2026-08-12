@@ -2,12 +2,12 @@
 /**
  * TRANG PHÊ DUYỆT - MANAGER APPROVALS (BẢN KẾT HỢP TỐI ƯU)
  */
-$pageTitle = 'Phê duyệt | Creative Agency Hub';
+$pageTitle = 'Phê duyệt | Work & HR Management';
 $pageCss = ['payroll.css'];
 $pageJs = ['payroll.js'];
 $activeMenu = 'approvals';
 $topbarTitle = 'Manager Approvals';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>

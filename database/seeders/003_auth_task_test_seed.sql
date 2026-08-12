@@ -1,5 +1,4 @@
 -- =========================================================
--- Creative Agency Hub
 -- Auth + Task/Kanban Test Seed
 --
 -- KHÔNG ĐỤNG SCHEMA
@@ -132,7 +131,7 @@ VALUES
         '0900000001',
         'other',
         '1999-01-01',
-        'Creative Agency Hub',
+        'Work & HR Management',
         NULL,
         12,
         12.00,
@@ -154,7 +153,7 @@ VALUES
         '0900000002',
         'other',
         '1999-01-01',
-        'Creative Agency Hub',
+        'Work & HR Management',
         NULL,
         12,
         12.00,

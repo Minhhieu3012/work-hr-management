@@ -2,12 +2,12 @@
 /**
  * TRANG XIN NGHỈ PHÉP - KẾT HỢP DỮ LIỆU ĐỘNG
  */
-$pageTitle = 'Xin nghỉ phép | Creative Agency Hub';
+$pageTitle = 'Xin nghỉ phép | Work & HR Management';
 $pageCss = ['payroll.css'];
 $pageJs = ['payroll.js'];
 $activeMenu = 'leave_request';
 $topbarTitle = 'Leave Request';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 // Đã loại bỏ mảng $leaveHistory giả để ưu tiên dữ liệu thực từ API thông qua payroll.js.
 
@@ -18,7 +18,7 @@ ob_start();
 // Tích hợp Component Header trang[cite: 5]
 $pageHeading = 'Xin Nghỉ phép';
 $pageSubtitle = 'Gửi đơn nghỉ trực tuyến, theo dõi quỹ phép còn lại và lịch sử phê duyệt.';
-$pageAction = '<a class="btn btn-light" href="/creative-agency-hub/app/View/payroll/manager_approvals.php">Xem phê duyệt</a>';
+$pageAction = '<a class="btn btn-light" href="/work-hr-management/app/View/payroll/manager_approvals.php">Xem phê duyệt</a>';
 require __DIR__ . '/../components/page-header.php';
 ?>
 

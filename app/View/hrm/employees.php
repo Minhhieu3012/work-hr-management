@@ -1,12 +1,12 @@
 <?php
-$pageTitle = 'Nhân sự & Tài khoản | Creative Agency Hub';
+$pageTitle = 'Nhân sự & Tài khoản | Work & HR Management';
 $pageCss = ['hrm.css', 'dashboard.css'];
 $pageJs = [];
 $activeMenu = 'employees';
 $topbarTitle = 'Nhân sự & Tài khoản';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $publicUrl = $baseUrl . '/public';
 $viewUrl = $baseUrl . '/app/View';
 

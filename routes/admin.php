@@ -12,7 +12,7 @@ return [
     }, ['admin']],
 
     ['GET', '/admin/login', function () {
-        cah_redirect(PROJECT_URL . '/app/View/admin/auth/login.php');
+        require BASE_PATH . '/app/View/admin/auth/login.php';
     }, null],
 
     ['GET', '/admin/dashboard', function () {

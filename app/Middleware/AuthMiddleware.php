@@ -115,35 +115,44 @@ class AuthMiddleware {
         return '';
     }
 
-    public static function check(): array {
-        $token = self::getToken();
+    public static function check(bool $isApi = false): array {
+    $token = self::getToken();
 
-        if ($token !== '') {
-            try {
-                $jwt = new JwtHandler();
-                $decoded = $jwt->decode($token);
-                $authUser = self::normalizePayload($decoded);
+    if ($token !== '') {
+        try {
+            $jwt = new JwtHandler();
+            $decoded = $jwt->decode($token);
+            $authUser = self::normalizePayload($decoded);
 
-                if ($authUser && !empty($authUser['id'])) {
-                    self::syncSession($authUser);
-                    return $authUser;
-                }
-            } catch (Throwable $e) {
-                // Nếu token lỗi thì thử fallback session bên dưới.
+            if ($authUser && !empty($authUser['id'])) {
+                self::syncSession($authUser);
+                return $authUser;
             }
+        } catch (Throwable $e) {
+            // fallback session bên dưới
         }
+    }
 
-        $sessionUser = self::getUserFromSession();
+    $sessionUser = self::getUserFromSession();
 
-        if ($sessionUser && !empty($sessionUser['id'])) {
-            return $sessionUser;
-        }
+    if ($sessionUser && !empty($sessionUser['id'])) {
+        return $sessionUser;
+    }
 
+    if ($isApi) {
         self::json([
             'status' => 'error',
             'message' => 'Unauthorized: Phiên làm việc hết hạn. Vui lòng đăng nhập lại.'
         ], 401);
     }
+
+    // Web route: redirect về trang login thay vì trả JSON thô
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    header('Location: ' . PROJECT_URL . '/public/staff/login');
+    exit;
+}
 
     public static function requireAuth(): array {
         return self::check();

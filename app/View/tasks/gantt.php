@@ -6,12 +6,12 @@ if (session_status() === PHP_SESSION_NONE) {
 $userRole = strtolower((string)($_SESSION['user_role'] ?? 'employee'));
 $isManagerLike = in_array($userRole, ['admin', 'manager'], true);
 
-$pageTitle = 'Gantt Chart | Creative Agency Hub';
+$pageTitle = 'Gantt Chart | Work & HR Management';
 $pageCss = ['tasks.css'];
 $pageJs = ['tasks-gantt.js'];
 $activeMenu = 'gantt';
 $topbarTitle = 'Gantt Chart';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>
@@ -28,8 +28,8 @@ $createTaskBtn = $isManagerLike
 $pageAction = '
 <div class="task-top-actions">
     <div class="kanban-view-switch">
-        <a href="/creative-agency-hub/app/View/tasks/kanban.php">☑ Kanban</a>
-        <a class="is-active" href="/creative-agency-hub/app/View/tasks/gantt.php">▥ Gantt Chart</a>
+        <a href="/work-hr-management/app/View/tasks/kanban.php">☑ Kanban</a>
+        <a class="is-active" href="/work-hr-management/app/View/tasks/gantt.php">▥ Gantt Chart</a>
     </div>
     ' . $createTaskBtn . '
 </div>';
@@ -98,7 +98,7 @@ require __DIR__ . '/../components/page-header.php';
         </div>
 
         <div class="card-body" style="text-align: center;">
-            <a href="/creative-agency-hub/app/View/tasks/kanban.php" class="btn btn-soft">
+            <a href="/work-hr-management/app/View/tasks/kanban.php" class="btn btn-soft">
                 Xem bảng Kanban dự án →
             </a>
         </div>
@@ -113,7 +113,7 @@ require __DIR__ . '/../components/page-header.php';
                     Đang đồng bộ dữ liệu task từ hệ thống.
                 </p>
             </div>
-            <a class="btn btn-light" href="/creative-agency-hub/app/View/tasks/kanban.php">Xem task rủi ro</a>
+            <a class="btn btn-light" href="/work-hr-management/app/View/tasks/kanban.php">Xem task rủi ro</a>
         </article>
 
         <article class="card">

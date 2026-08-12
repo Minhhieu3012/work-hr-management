@@ -3,7 +3,7 @@
 -- Lưu ý: Chạy file này sau khi đã chạy 002_hrm_schema.sql
 -- =========================================================================
 
-USE creative_agency;
+USE work_hr_management;
 
 -- Bỏ qua kiểm tra khóa ngoại tạm thời để truncate/insert an toàn
 SET FOREIGN_KEY_CHECKS = 0;

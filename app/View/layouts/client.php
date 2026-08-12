@@ -1,10 +1,10 @@
 <?php
-$pageTitle = $pageTitle ?? 'Client Portal | Creative Agency Hub';
+$pageTitle = $pageTitle ?? 'Client Portal | Work & HR Management';
 $pageCss = $pageCss ?? ['client-portal.css'];
 $pageJs = $pageJs ?? ['client-portal.js'];
-$brandName = $brandName ?? 'Creative Agency Hub';
+$brandName = $brandName ?? 'Work & HR Management';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $assetUrl = $assetUrl ?? ($baseUrl . '/public/assets');
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 

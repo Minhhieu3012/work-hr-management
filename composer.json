@@ -1,5 +1,5 @@
 {
-  "name": "hieuc/creative-agency-hub",
+  "name": "hieuc/work-hr-management",
   "autoload": {
     "psr-4": {
       "App\\": "app/",

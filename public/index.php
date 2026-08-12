@@ -1,6 +1,6 @@
 <?php
 /**
- * CREATIVE AGENCY HUB - CENTRAL ENTRY POINT
+ * Work & HR Management - CENTRAL ENTRY POINT
  * Đợt 1:
  * - Load route theo từng luồng: admin, staff, client, api
  * - Giữ tương thích app/View hiện tại để chưa phải move view ngay
@@ -21,8 +21,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 define('BASE_PATH', dirname(__DIR__));
-define('PROJECT_URL', '/creative-agency-hub');
-define('APP_URL', '/creative-agency-hub/public');
+define('PROJECT_URL', '/work-hr-management');
+define('APP_URL', '/work-hr-management/public');
 
 require_once BASE_PATH . '/vendor/autoload.php';
 
@@ -215,7 +215,7 @@ try {
         $authUser = null;
 
         if ($roles !== null) {
-            $authUser = AuthMiddleware::check();
+            $authUser = AuthMiddleware::check(strpos($path, '/api/') === 0);
             RoleMiddleware::handle($authUser, $roles);
         }
 

@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Danh sách tài khoản | Creative Agency Hub';
+$pageTitle = 'Danh sách tài khoản | Work & HR Management System';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-accounts';
 $topbarTitle = 'Danh sách tài khoản';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management System';
 
 ob_start();
 ?>
@@ -71,12 +71,8 @@ require __DIR__ . '/../../components/page-header.php';
             <div class="task-filter-bar" style="margin-bottom: 18px;">
                 <div class="input-with-icon">
                     <span class="input-icon">⌕</span>
-                    <input
-                        class="form-control"
-                        type="search"
-                        placeholder="Tìm tên, email, mã..."
-                        data-admin-account-search
-                    >
+                    <input class="form-control" type="search" placeholder="Tìm tên, email, mã..."
+                        data-admin-account-search>
                 </div>
 
                 <select class="form-select" data-admin-account-role>

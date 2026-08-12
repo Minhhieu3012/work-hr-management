@@ -11,7 +11,7 @@ return [
     }, ['client']],
 
     ['GET', '/client/login', function () {
-        cah_redirect(PROJECT_URL . '/app/View/client-portal/login-client.php');
+        require BASE_PATH . '/app/View/client-portal/login-client.php';
     }, null],
 
     ['GET', '/client/projects', function () {

@@ -1,11 +1,11 @@
 <?php
-$pageTitle = 'Đăng nhập Admin | Creative Agency Hub';
+$pageTitle = 'Đăng nhập Admin | Work & HR Management System';
 $pageCss = ['auth.css'];
 $pageJs = ['forms.js', 'auth-portal.js'];
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management System';
 $bodyClass = 'auth-body';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 
 $error = $error ?? null;
@@ -17,8 +17,8 @@ ob_start();
     <div class="auth-split-card">
         <aside class="auth-hero">
             <div class="auth-hero-brand">
-                <span class="brand-mark">CA</span>
-                <span>Creative Agency Hub</span>
+                <span class="brand-mark">WM</span>
+                <span>Work & HR Management System</span>
             </div>
 
             <div class="auth-hero-copy">
@@ -31,10 +31,8 @@ ob_start();
 
             <div class="auth-preview-card">
                 <div class="auth-preview-image-frame">
-                    <img
-                        src="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/assets/pictures/teampagelogin.jpg"
-                        alt="Creative Agency Hub admin workspace"
-                    >
+                    <img src="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/assets/pictures/teampagelogin.jpg"
+                        alt="Work & HR Management System admin workspace">
                 </div>
             </div>
         </aside>
@@ -47,32 +45,23 @@ ob_start();
                 </div>
 
                 <?php if (!empty($error)): ?>
-                    <div class="form-alert form-alert-danger">
-                        <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
-                    </div>
+                <div class="form-alert form-alert-danger">
+                    <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
                 <?php endif; ?>
 
-                <form
-                    method="POST"
+                <form method="POST"
                     action="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/api/auth/login-admin"
                     data-auth-portal-form
                     data-auth-endpoint="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/api/auth/login-admin"
                     data-auth-redirect="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/admin/dashboard"
-                    data-success-message="Đăng nhập thành công. Đang chuyển về Admin Dashboard..."
-                >
+                    data-success-message="Đăng nhập thành công. Đang chuyển về Admin Dashboard...">
                     <div class="form-group">
                         <label class="form-label" for="email">Email Admin</label>
                         <div class="input-with-icon">
                             <span class="input-icon">✉</span>
-                            <input
-                                id="email"
-                                class="form-control"
-                                type="email"
-                                name="email"
-                                placeholder="admin@agency.vn"
-                                autocomplete="email"
-                                required
-                            >
+                            <input id="email" class="form-control" type="email" name="email"
+                                placeholder="admin@agency.vn" autocomplete="email" required>
                         </div>
                     </div>
 
@@ -84,22 +73,11 @@ ob_start();
 
                         <div class="input-with-icon">
                             <span class="input-icon">▣</span>
-                            <input
-                                id="password"
-                                class="form-control"
-                                type="password"
-                                name="password"
-                                placeholder="••••••••"
-                                autocomplete="current-password"
-                                required
-                            >
+                            <input id="password" class="form-control" type="password" name="password"
+                                placeholder="••••••••" autocomplete="current-password" required>
 
-                            <button
-                                type="button"
-                                class="password-eye"
-                                data-password-toggle="#password"
-                                aria-label="Hiện/ẩn mật khẩu"
-                            >👁</button>
+                            <button type="button" class="password-eye" data-password-toggle="#password"
+                                aria-label="Hiện/ẩn mật khẩu">👁</button>
                         </div>
                     </div>
 
@@ -119,12 +97,14 @@ ob_start();
                 <div class="auth-divider">Chuyển cổng đăng nhập</div>
 
                 <div class="auth-social-grid">
-                    <a class="btn btn-light" href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/app/View/staff/auth/login.php">
+                    <a class="btn btn-light"
+                        href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/app/View/staff/auth/login.php">
                         <span>▦</span>
                         <span>Internal Portal</span>
                     </a>
 
-                    <a class="btn btn-light" href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/app/View/client-portal/login-client.php">
+                    <a class="btn btn-light"
+                        href="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/app/View/client-portal/login-client.php">
                         <span>◇</span>
                         <span>Client Portal</span>
                     </a>
@@ -135,7 +115,7 @@ ob_start();
                 </p>
 
                 <div class="auth-legal">
-                    <span>© 2026 Creative Agency Hub</span>
+                    <span>© 2026 Work & HR Management System</span>
                     <span>
                         <a href="#" data-disabled-demo>Bảo mật</a>
                         &nbsp;&nbsp;

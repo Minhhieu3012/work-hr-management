@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Khóa / mở khóa tài khoản | Creative Agency Hub';
+$pageTitle = 'Khóa / mở khóa tài khoản | Work & HR Management System';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-account-security';
 $topbarTitle = 'Khóa / mở khóa';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management System';
 
 ob_start();
 ?>

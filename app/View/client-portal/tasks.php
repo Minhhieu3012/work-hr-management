@@ -3,9 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$pageTitle = 'Công việc dự án | Creative Agency Hub';
+$pageTitle = 'Công việc dự án | Work & HR Management';
 
-$baseUrl = '/creative-agency-hub';
+$baseUrl = '/work-hr-management';
 $publicUrl = $baseUrl . '/public';
 $viewUrl = $baseUrl . '/app/View';
 $assetUrl = $publicUrl . '/assets';
@@ -28,7 +28,7 @@ $cacheBust = time();
         <header class="client-topbar">
             <a class="client-brand" href="<?php echo htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8'); ?>/client-portal/projects.php">
                 <span class="brand-mark">CA</span>
-                <span>Creative Agency Hub</span>
+                <span>Work & HR Management</span>
             </a>
 
             <nav class="client-nav" aria-label="Client navigation">

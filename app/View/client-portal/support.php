@@ -1,8 +1,8 @@
 <?php
-$pageTitle = 'Hỗ trợ Khách hàng | Creative Agency Hub';
+$pageTitle = 'Hỗ trợ Khách hàng | Work & HR Management';
 $pageCss = ['client-portal.css'];
 $pageJs = ['client-portal.js'];
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 $clientActive = 'support';
 
 $currentUser = $currentUser ?? [
@@ -40,7 +40,7 @@ ob_start();
 
 <section class="client-hero">
     <div class="client-hero-copy">
-        <span class="client-kicker">Support Center • Creative Agency Hub</span>
+        <span class="client-kicker">Support Center • Work & HR Management</span>
         <h1>Trung tâm hỗ trợ khách hàng.</h1>
         <p>
             Gửi yêu cầu thay đổi, hỏi về tiến độ, báo lỗi hoặc trao đổi nhanh với đội dự án.

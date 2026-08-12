@@ -9,8 +9,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $userRoleSession = isset($_SESSION['user_role']) ? strtolower((string)$_SESSION['user_role']) : null;
 $activeMenu = $activeMenu ?? 'dashboard';
-$brandName  = $brandName  ?? 'Creative Agency Hub';
-$baseUrl    = $baseUrl    ?? '/creative-agency-hub';
+$brandName  = $brandName  ?? 'Work & HR Management';
+$baseUrl    = $baseUrl    ?? '/work-hr-management';
 $viewUrl    = $viewUrl    ?? ($baseUrl . '/app/View');
 $publicUrl  = $baseUrl . '/public';
 

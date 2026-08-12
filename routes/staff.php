@@ -15,7 +15,7 @@ return [
     }, ['manager', 'employee']],
 
     ['GET', '/staff/login', function () {
-        cah_redirect(PROJECT_URL . '/app/View/staff/auth/login.php');
+        require BASE_PATH . '/app/View/staff/auth/login.php';
     }, null],
 
     ['GET', '/staff/dashboard', function () {

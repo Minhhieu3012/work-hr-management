@@ -1,11 +1,11 @@
 <?php
-$pageTitle = 'Đăng nhập nội bộ | Creative Agency Hub';
+$pageTitle = 'Đăng nhập nội bộ | Work & HR Management';
 $pageCss = ['auth.css'];
 $pageJs = ['forms.js', 'auth-portal.js'];
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 $bodyClass = 'auth-body';
 
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 
 $error = $error ?? null;
@@ -18,7 +18,7 @@ ob_start();
         <aside class="auth-hero">
             <div class="auth-hero-brand">
                 <span class="brand-mark">CA</span>
-                <span>Creative Agency Hub</span>
+                <span>Work & HR Management</span>
             </div>
 
             <div class="auth-hero-copy">
@@ -33,7 +33,7 @@ ob_start();
                 <div class="auth-preview-image-frame">
                     <img
                         src="<?php echo htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8'); ?>/public/assets/pictures/teampagelogin.jpg"
-                        alt="Creative Agency Hub internal workspace"
+                        alt="Work & HR Management internal workspace"
                     >
                 </div>
             </div>
@@ -135,7 +135,7 @@ ob_start();
                 </p>
 
                 <div class="auth-legal">
-                    <span>© 2026 Creative Agency Hub</span>
+                    <span>© 2026 Work & HR Management</span>
                     <span>
                         <a href="#" data-disabled-demo>Bảo mật</a>
                         &nbsp;&nbsp;

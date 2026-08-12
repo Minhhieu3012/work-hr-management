@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Quản lý dự án | Creative Agency Hub';
+$pageTitle = 'Quản lý dự án | Work & HR Management';
 $pageCss = ['tasks.css', 'dashboard.css'];
 $pageJs = ['dashboard.js'];
 $activeMenu = 'projects';
 $topbarTitle = 'Dự án';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>
@@ -90,7 +90,7 @@ require __DIR__ . '/../components/page-header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const baseUrl = '/creative-agency-hub';
+    const baseUrl = '/work-hr-management';
     const apiRoot = window.CAH_CONFIG?.apiRoot || `${baseUrl}/public`;
     const viewUrl = `${baseUrl}/app/View`;
 
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
                             ${managerAction}
-                            <a href="/creative-agency-hub/app/View/tasks/kanban.php?project_id=${project.id || ''}" class="btn btn-primary">
+                            <a href="/work-hr-management/app/View/tasks/kanban.php?project_id=${project.id || ''}" class="btn btn-primary">
                                 Xem bảng
                             </a>
                         </div>

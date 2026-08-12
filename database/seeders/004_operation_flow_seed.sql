@@ -1,5 +1,4 @@
 -- =========================================================
--- Creative Agency Hub
 -- Seeder 004 - Operation Flow Seed
 --
 -- Safe version:
@@ -10,7 +9,7 @@
 -- Password test: 123456
 -- =========================================================
 
-USE creative_agency;
+USE work_hr_management;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -104,7 +103,7 @@ VALUES (
     '0900000001',
     'other',
     '1999-01-01',
-    'Creative Agency Hub',
+    'Work & HR Management',
     NULL,
     12,
     12.00,
@@ -168,7 +167,7 @@ VALUES (
     '0900000002',
     'other',
     '1999-01-01',
-    'Creative Agency Hub',
+    'Work & HR Management',
     NULL,
     12,
     12.00,

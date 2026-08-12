@@ -1,6 +1,6 @@
 <?php
 /**
- * CREATIVE AGENCY HUB - API ROUTES
+ * Work & HR Management - API ROUTES
  *
  * Format:
  * [Method, Path, Handler, Roles]

@@ -1,4 +1,4 @@
-# Creative Agency Hub - API Contracts
+# Work & HR Management System
 
 Tài liệu này quy định chuẩn giao tiếp API giữa Frontend và Backend cho toàn bộ các module trong dự án.
 

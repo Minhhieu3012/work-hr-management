@@ -6,19 +6,19 @@ if (session_status() === PHP_SESSION_NONE) {
 $userRole = strtolower((string)($_SESSION['user_role'] ?? 'employee'));
 $isManagerLike = in_array($userRole, ['admin', 'manager'], true);
 
-$pageTitle = 'Bảng Kanban | Creative Agency Hub';
+$pageTitle = 'Bảng Kanban | Work & HR Management';
 $pageCss = ['tasks.css'];
 $pageJs = ['tasks-kanban.js']; 
 $activeMenu = 'kanban';
 $topbarTitle = 'Task Board';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>
 
 <?php
 $pageHeading = 'Bảng Công việc';
-$pageSubtitle = 'Quản lý và theo dõi tiến độ dự án Creative Agency Hub theo từng trạng thái.';
+$pageSubtitle = 'Quản lý và theo dõi tiến độ dự án Work & HR Management theo từng trạng thái.';
 
 $createTaskBtn = $isManagerLike 
     ? '<button class="btn btn-primary" type="button" data-add-task>＋ Tạo Task mới</button>' 
@@ -27,8 +27,8 @@ $createTaskBtn = $isManagerLike
 $pageAction = '
 <div class="task-top-actions">
     <div class="kanban-view-switch">
-        <a class="is-active" href="/creative-agency-hub/app/View/tasks/kanban.php">☑ Kanban</a>
-        <a href="/creative-agency-hub/app/View/tasks/gantt.php">▥ Gantt Chart</a>
+        <a class="is-active" href="/work-hr-management/app/View/tasks/kanban.php">☑ Kanban</a>
+        <a href="/work-hr-management/app/View/tasks/gantt.php">▥ Gantt Chart</a>
     </div>
     ' . $createTaskBtn . '
 </div>';

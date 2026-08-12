@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Thêm chức danh mới | Creative Agency Hub';
+$pageTitle = 'Thêm chức danh mới | Work & HR Management';
 $pageCss = ['hrm.css'];
 $activeMenu = 'departments';
 $topbarTitle = 'Thêm chức danh';
@@ -40,7 +40,7 @@ document.getElementById('add-role-form').addEventListener('submit', function(e) 
     const name = document.getElementById('role-name').value;
     const description = document.getElementById('role-desc').value;
 
-    fetch('/creative-agency-hub/public/api/organization/positions/store', {
+    fetch('/work-hr-management/public/api/organization/positions/store', {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + token,

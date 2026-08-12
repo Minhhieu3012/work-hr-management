@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Chỉnh sửa nhân sự | Creative Agency Hub';
+$pageTitle = 'Chỉnh sửa nhân sự | Work & HR Management';
 $pageCss = ['hrm.css'];
 $activeMenu = 'departments'; 
 $topbarTitle = 'Chỉnh sửa nhân sự';
@@ -70,7 +70,7 @@ require __DIR__ . '/../components/page-header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('cah_token');
-    const baseUrl = '/creative-agency-hub';
+    const baseUrl = '/work-hr-management';
     const urlParams = new URLSearchParams(window.location.search);
     const employeeId = urlParams.get('id');
 

@@ -25,7 +25,7 @@ class LogoutController {
 
         // 2. Chuyển hướng về trang login THÔNG QUA Router (index.php)
         // Lưu ý: APP_URL đã được định nghĩa trong index.php
-        header("Location: " . '/creative-agency-hub/public/auth/login.php');
+        header("Location: " . '/work-hr-management/public/auth/login.php');
         exit;
     }
 }

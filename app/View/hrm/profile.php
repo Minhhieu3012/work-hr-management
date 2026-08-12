@@ -8,12 +8,12 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../../../core/Database.php';
 require_once __DIR__ . '/../../Models/HRM/Employee.php';
 
-$pageTitle = 'Hồ sơ cá nhân | Creative Agency Hub';
+$pageTitle = 'Hồ sơ cá nhân | Work & HR Management';
 $pageCss = ['hrm.css'];
 $pageJs = ['hrm.js'];
 $activeMenu = '';
 $topbarTitle = 'Hồ sơ của tôi';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 if (!function_exists('e')) {
     function e($value) {
@@ -119,14 +119,14 @@ if (!function_exists('resolveAvatarUrl')) {
         }
 
         if (strpos($avatar, 'public/') === 0) {
-            return '/creative-agency-hub/' . ltrim($avatar, '/');
+            return '/work-hr-management/' . ltrim($avatar, '/');
         }
 
         if (strpos($avatar, 'uploads/') === 0) {
-            return '/creative-agency-hub/public/' . ltrim($avatar, '/');
+            return '/work-hr-management/public/' . ltrim($avatar, '/');
         }
 
-        return '/creative-agency-hub/public/uploads/avatars/' . rawurlencode($avatar);
+        return '/work-hr-management/public/uploads/avatars/' . rawurlencode($avatar);
     }
 }
 
@@ -202,8 +202,8 @@ if ($profileError !== null) {
                 </p>
 
                 <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
-                    <a class="btn btn-emerald" href="/creative-agency-hub/app/View/auth/login.php">Đăng nhập lại</a>
-                    <a class="btn btn-light" href="/creative-agency-hub/app/View/hrm/profile.php">Tải lại trang</a>
+                    <a class="btn btn-emerald" href="/work-hr-management/app/View/auth/login.php">Đăng nhập lại</a>
+                    <a class="btn btn-light" href="/work-hr-management/app/View/hrm/profile.php">Tải lại trang</a>
                 </div>
             </div>
         </article>
@@ -270,7 +270,7 @@ ob_start();
         </div>
 
         <div class="profile-actions">
-            <a href="/creative-agency-hub/app/View/payroll/attendance.php" class="btn btn-emerald">
+            <a href="/work-hr-management/app/View/payroll/attendance.php" class="btn btn-emerald">
                 <span>↪</span>
                 <span>Check-in Trực tuyến</span>
             </a>

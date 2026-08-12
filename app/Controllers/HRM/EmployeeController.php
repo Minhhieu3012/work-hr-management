@@ -978,7 +978,7 @@ class EmployeeController {
                 'message' => 'Cập nhật ảnh đại diện thành công.',
                 'data' => [
                     'avatar' => $filename,
-                    'avatar_url' => '/creative-agency-hub/public/uploads/avatars/' . rawurlencode($filename)
+                    'avatar_url' => '/work-hr-management/public/uploads/avatars/' . rawurlencode($filename)
                 ]
             ]);
         } catch (Throwable $e) {
@@ -1011,7 +1011,7 @@ class EmployeeController {
             $documents = $this->employeeModel->listDocumentsByEmployee($employeeId);
 
             foreach ($documents as &$document) {
-                $document['download_url'] = '/creative-agency-hub/public/api/employee-documents/' . $document['id'] . '/download';
+                $document['download_url'] = '/work-hr-management/public/api/employee-documents/' . $document['id'] . '/download';
             }
 
             unset($document);
@@ -1156,7 +1156,7 @@ class EmployeeController {
             $document = $this->employeeModel->findDocumentById($documentId);
 
             if ($document) {
-                $document['download_url'] = '/creative-agency-hub/public/api/employee-documents/' . $document['id'] . '/download';
+                $document['download_url'] = '/work-hr-management/public/api/employee-documents/' . $document['id'] . '/download';
             }
 
             $this->json([

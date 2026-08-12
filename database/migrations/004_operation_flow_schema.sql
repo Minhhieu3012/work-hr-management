@@ -1,5 +1,5 @@
 -- =========================================================
--- Creative Agency Hub
+-- Work & HR Management
 -- Migration 004 - Operation Flow Schema
 --
 -- Mục tiêu:
@@ -12,7 +12,7 @@
 -- Không xoá dữ liệu cũ.
 -- =========================================================
 
-USE creative_agency;
+USE work_hr_management;
 
 -- =========================================================
 -- 1. PROJECT MEMBERS

@@ -1,19 +1,19 @@
 <?php
-$pageTitle = 'Admin Dashboard | Creative Agency Hub';
+$pageTitle = 'Admin Dashboard | Work & HR Management System';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-dashboard';
 $topbarTitle = 'Admin Dashboard';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management System';
 
 ob_start();
 ?>
 
 <?php
 $pageHeading = 'Admin Dashboard';
-$pageSubtitle = 'Tổng quan hệ thống Creative Agency Hub.';
+$pageSubtitle = 'Tổng quan hệ thống Work & HR Management System.';
 $pageAction = '
-    <a class="btn btn-primary" href="/creative-agency-hub/app/View/admin/accounts/index.php">
+    <a class="btn btn-primary" href="/work-hr-management/app/View/admin/accounts/index.php">
         Quản lý tài khoản
     </a>
 ';
@@ -103,7 +103,7 @@ require __DIR__ . '/../../components/page-header.php';
                     <p>Danh sách tài khoản mới nhất cần xử lý.</p>
                 </div>
 
-                <a class="btn btn-soft" href="/creative-agency-hub/app/View/admin/approvals/managers.php">
+                <a class="btn btn-soft" href="/work-hr-management/app/View/admin/approvals/managers.php">
                     Xem duyệt Manager
                 </a>
             </div>
@@ -139,7 +139,7 @@ require __DIR__ . '/../../components/page-header.php';
 
             <div class="card-body">
                 <div class="hrm-grid">
-                    <a class="document-card" href="/creative-agency-hub/app/View/admin/approvals/managers.php">
+                    <a class="document-card" href="/work-hr-management/app/View/admin/approvals/managers.php">
                         <div class="document-icon">M</div>
                         <div class="document-info">
                             <strong>Duyệt Manager</strong>
@@ -148,7 +148,7 @@ require __DIR__ . '/../../components/page-header.php';
                         <span>→</span>
                     </a>
 
-                    <a class="document-card" href="/creative-agency-hub/app/View/admin/approvals/accounts.php">
+                    <a class="document-card" href="/work-hr-management/app/View/admin/approvals/accounts.php">
                         <div class="document-icon">✓</div>
                         <div class="document-info">
                             <strong>Duyệt nhân sự</strong>
@@ -157,7 +157,7 @@ require __DIR__ . '/../../components/page-header.php';
                         <span>→</span>
                     </a>
 
-                    <a class="document-card" href="/creative-agency-hub/app/View/admin/accounts/security.php">
+                    <a class="document-card" href="/work-hr-management/app/View/admin/accounts/security.php">
                         <div class="document-icon">!</div>
                         <div class="document-info">
                             <strong>Khóa / mở khóa</strong>

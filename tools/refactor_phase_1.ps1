@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
-$Root = "D:\LTW_2026\creative-agency-hub"
+$Root = "D:\LTW_2026\work-hr-management"
 
-Write-Host "== Creative Agency Hub - Refactor Phase 1 ==" -ForegroundColor Cyan
+Write-Host "== Work & HR Management - Refactor Phase 1 ==" -ForegroundColor Cyan
 Write-Host "Root: $Root" -ForegroundColor Gray
 
 if (!(Test-Path $Root)) {

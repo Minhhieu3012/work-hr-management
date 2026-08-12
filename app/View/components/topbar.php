@@ -8,7 +8,7 @@ $currentUser = $currentUser ?? [
 ];
 
 $topbarTitle = $topbarTitle ?? '';
-$baseUrl = $baseUrl ?? '/creative-agency-hub';
+$baseUrl = $baseUrl ?? '/work-hr-management';
 $viewUrl = $viewUrl ?? ($baseUrl . '/app/View');
 
 $userId = $currentUser['id'] ?? null;

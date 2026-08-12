@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Cơ cấu tổ chức | Creative Agency Hub';
+$pageTitle = 'Cơ cấu tổ chức | Work & HR Management';
 $pageCss = ['hrm.css', 'organization.css']; 
 $pageJs = ['hrm.js'];
 $activeMenu = 'departments';
 $topbarTitle = 'Cơ cấu tổ chức';
-$brandName = 'Creative Agency Hub';
+$brandName = 'Work & HR Management';
 
 $departments = [];
 $roles = [];
@@ -62,7 +62,7 @@ require __DIR__ . '/../components/page-header.php';
 <section class="card" style="margin-top: 26px;">
     <div class="card-header dashboard-card-title-row">
         <h2>Danh sách nhân sự nòng cốt</h2>
-        <a href="/creative-agency-hub/app/View/hrm/employees.php" class="text-primary" style="font-weight: 800;">Xem tất cả</a>
+        <a href="/work-hr-management/app/View/hrm/employees.php" class="text-primary" style="font-weight: 800;">Xem tất cả</a>
     </div>
     <div class="table-responsive">
         <table class="data-table">
@@ -85,7 +85,7 @@ require __DIR__ . '/../components/page-header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('cah_token'); 
-    const baseUrl = '/creative-agency-hub';
+    const baseUrl = '/work-hr-management';
 
     if (!token) { 
         window.location.href = baseUrl + '/public/auth/login.php'; 

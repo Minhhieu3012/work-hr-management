@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Nhật ký hoạt động | Creative Agency Hub';
+$pageTitle = 'Nhật ký hoạt động | Work & HR Management';
 $pageCss = []; // Thêm css riêng nếu cần
 $pageJs = [];  // Thêm js riêng nếu cần
 $activeMenu = 'dashboard'; // Giữ sáng menu Bảng điều khiển

@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Thêm phòng ban mới | Creative Agency Hub';
+$pageTitle = 'Thêm phòng ban mới | Work & HR Management';
 $pageCss = ['hrm.css'];
 $activeMenu = 'departments';
 $topbarTitle = 'Thêm phòng ban';
@@ -40,7 +40,7 @@ document.getElementById('add-dept-form').addEventListener('submit', function(e) 
     const name = document.getElementById('dept-name').value;
     const description = document.getElementById('dept-desc').value;
 
-    fetch('/creative-agency-hub/public/api/organization/store', {
+    fetch('/work-hr-management/public/api/organization/store', {
         method: 'POST',
         headers: {
             'Authorization': 'Bearer ' + token,
