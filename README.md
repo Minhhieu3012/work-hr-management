@@ -89,8 +89,6 @@ cp .env.example .env
 
 ### 3. Database Setup
 
-Create a new database (e.g., work_hr_management) and execute the SQL scripts in the following sequence:
-
 1. **Base Schema:**
 
 ```bash
