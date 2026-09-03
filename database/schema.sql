@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS work_hr_management
 
 USE work_hr_management;
 
--- 1. BẢNG PHÒNG BAN (Departments)
+-- 1. Departments
 CREATE TABLE departments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -19,7 +19,7 @@ CREATE TABLE departments (
     INDEX idx_departments_deleted_at (deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. BẢNG CHỨC VỤ (Positions)
+-- 2. Positions
 CREATE TABLE positions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -32,7 +32,7 @@ CREATE TABLE positions (
     INDEX idx_positions_deleted_at (deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. BẢNG NHÂN VIÊN (Employees)
+-- 3. Employees
 CREATE TABLE employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
     department_id INT NOT NULL,
@@ -42,7 +42,6 @@ CREATE TABLE employees (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    -- Đã FIX: Bổ sung quyền 'client' cho nhánh của Phú
     role ENUM('admin', 'manager', 'employee', 'client') NOT NULL DEFAULT 'employee',
     phone VARCHAR(20) NULL,
     gender ENUM('male', 'female', 'other') NULL,
@@ -79,7 +78,7 @@ CREATE TABLE employees (
     INDEX idx_employees_status_deleted (status, deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. BẢNG HỢP ĐỒNG LAO ĐỘNG (Employee Contracts)
+-- 4. Employee Contracts
 CREATE TABLE employee_contracts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
@@ -103,7 +102,7 @@ CREATE TABLE employee_contracts (
     
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. BẢNG NHẬT KÝ ĐIỀU CHỈNH QUỸ PHÉP (Leave Adjustments)
+-- 5. Leave Adjustments
 CREATE TABLE employee_leave_adjustments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
@@ -124,7 +123,7 @@ CREATE TABLE employee_leave_adjustments (
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 6. BẢNG DỰ ÁN (Projects) - Owner: Huy
+-- 6. Projects
 CREATE TABLE projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -138,7 +137,7 @@ CREATE TABLE projects (
     FOREIGN KEY (client_id) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 7. BẢNG CÔNG VIỆC (Tasks) - Owner: Huy
+-- 7. Tasks
 CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NULL, 
@@ -149,7 +148,6 @@ CREATE TABLE tasks (
     deadline DATE,
     assigner_id INT, 
     assignee_id INT, 
-    -- Đã FIX: Bổ sung watcher_id cho yêu cầu của Huy
     watcher_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -159,7 +157,7 @@ CREATE TABLE tasks (
     FOREIGN KEY (watcher_id) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 8. BẢNG BÌNH LUẬN (Task Comments) - Owner: Bảo
+-- 8. Task Comments
 CREATE TABLE task_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -171,7 +169,7 @@ CREATE TABLE task_comments (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Bảng thông báo khi assign task - Owner: Bảo
+-- Notifications
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -182,7 +180,7 @@ CREATE TABLE notifications (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- BẢNG LỊCH SỬ CHỈNH SỬA TASK (Task Activity Logs) - Owner: Bảo (Bổ sung bảng)
+-- Task Activity Logs
 CREATE TABLE task_activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -207,7 +205,7 @@ CREATE TABLE task_activity_logs (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- 9. BẢNG ĐÍNH KÈM TÀI LIỆU (Task Attachments) - Owner: Bảo (ĐÃ FIX: Bổ sung bảng)
+-- 9. Task Attachments
 CREATE TABLE task_attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -219,7 +217,7 @@ CREATE TABLE task_attachments (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 10. BẢNG NGHỈ PHÉP (Leave Requests) - Owner: Tiến
+-- 10. Leave Requests
 CREATE TABLE leave_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
@@ -234,7 +232,7 @@ CREATE TABLE leave_requests (
     FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 11. BẢNG CHẤM CÔNG (Attendances) - Owner: Tiến
+-- 11. Attendances 
 CREATE TABLE attendances (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
