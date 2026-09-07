@@ -131,43 +131,71 @@ class AccountController {
         return $account;
     }
 
+    private function findAccountForUpdate(int $id): ?array {
+        $stmt = $this->db->prepare($this->selectSql() . "
+            WHERE e.id = :id
+            AND e.deleted_at IS NULL
+            LIMIT 1
+            FOR UPDATE
+        ");
+        $stmt->execute([':id' => $id]);
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $account ?: null;
+    }
+
+    private function countActiveAdminsForUpdate(): int {
+        $stmt = $this->db->query("
+            SELECT COUNT(*)
+            FROM employees
+            WHERE role = 'admin'
+            AND status = 'active'
+            AND deleted_at IS NULL
+            FOR UPDATE
+        ");
+        return (int)$stmt->fetchColumn();
+    }
+
     private function updateStatusInternal(int $id, string $status): array {
         $status = $this->validStatus($status);
 
         if (!$status) {
-            $this->json([
-                'status' => 'error',
-                'message' => 'Trạng thái tài khoản không hợp lệ.'
-            ], 422);
+            $this->json(['status' => 'error', 'message' => 'Trạng thái tài khoản không hợp lệ.'], 422);
         }
 
-        $account = $this->ensureAccount($id);
+        try {
+            return \Core\Database::transaction(function (\PDO $pdo) use ($id, $status) {
+                $account = $this->findAccountForUpdate($id);
 
-        if ($account['role'] === 'admin' && $status !== 'active') {
-            $adminCount = $this->countActiveAdmins();
+                if (!$account) {
+                    throw new \RuntimeException('ACCOUNT_NOT_FOUND');
+                }
 
-            if ($adminCount <= 1) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Không thể khóa admin active cuối cùng của hệ thống.'
-                ], 422);
+                if ($account['role'] === 'admin' && $status !== 'active') {
+                    $adminCount = $this->countActiveAdminsForUpdate();
+
+                    if ($adminCount <= 1) {
+                        throw new \RuntimeException('LAST_ADMIN_LOCK');
+                    }
+                }
+
+                $stmt = $pdo->prepare("
+                    UPDATE employees
+                    SET status = :status, updated_at = NOW()
+                    WHERE id = :id AND deleted_at IS NULL
+                ");
+                $stmt->execute([':status' => $status, ':id' => $id]);
+
+                return $this->findAccountForUpdate($id);
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'ACCOUNT_NOT_FOUND') {
+                $this->json(['status' => 'error', 'message' => 'Không tìm thấy tài khoản.'], 404);
             }
+            if ($e->getMessage() === 'LAST_ADMIN_LOCK') {
+                $this->json(['status' => 'error', 'message' => 'Không thể khóa admin active cuối cùng của hệ thống.'], 422);
+            }
+            throw $e;
         }
-
-        $stmt = $this->db->prepare("
-            UPDATE employees
-            SET status = :status,
-                updated_at = NOW()
-            WHERE id = :id
-              AND deleted_at IS NULL
-        ");
-
-        $stmt->execute([
-            ':status' => $status,
-            ':id' => $id,
-        ]);
-
-        return $this->ensureAccount($id);
     }
 
     private function countActiveAdmins(): int {
