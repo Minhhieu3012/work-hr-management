@@ -486,13 +486,8 @@ class Employee {
         return (int)$this->db->lastInsertId();
     }
 
-    /**
-     * Issue #23 - Áp dụng Transaction cho Giao tác Tiếp nhận Nhân sự.
-     *
-     * Bọc chung trong 1 transaction: Tạo nhân viên (employees) + Tạo hợp đồng lao động
-     * ban đầu (employee_contracts). Nếu bất kỳ bước nào lỗi (vd sai dữ liệu hợp đồng,
-     * trùng email do race condition, deadlock...), toàn bộ sẽ rollback - không để lọt
-     * trường hợp có nhân viên mới nhưng không có hợp đồng (hoặc ngược lại).
+    /** 
+     * Issue #23 
      *
      * @param array $employeeData Dữ liệu nhân viên, cùng format với create().
      * @param array $contractData Dữ liệu hợp đồng: contract_type, start_date, end_date, salary, note.
@@ -539,8 +534,6 @@ class Employee {
                     ':resigned_date' => $prepared['resigned_date'],
                 ]);
             } catch (\PDOException $e) {
-                // SQLSTATE 23000 = vi phạm UNIQUE (email / employee_code trùng do race condition
-                // giữa lúc kiểm tra findByEmail() ở Controller và lúc insert thực tế ở đây).
                 if ((string)$e->getCode() === '23000') {
                     throw new Exception('Email hoặc mã nhân viên đã tồn tại trong hệ thống.');
                 }
@@ -737,13 +730,7 @@ class Employee {
     }
 
     /**
-     * Issue #25 - Áp dụng Transaction cho Giao tác Cập nhật Phòng ban & Tái ký Hợp đồng.
-     *
-     * Bọc chung trong 1 transaction: Cập nhật employees.department_id + Tái ký hợp đồng
-     * (chấm dứt hợp đồng active cũ + tạo hợp đồng mới trong employee_contracts).
-     * Dùng FOR UPDATE trên bản ghi nhân viên để tránh 2 request cùng lúc đổi phòng ban
-     * cho cùng 1 người.
-     *
+     * Issue #25 
      * @param array $newContractData Dữ liệu hợp đồng mới: contract_type, start_date, end_date, salary, note.
      * @return array{employee_id:int, new_department_id:int, new_contract_id:int}
      * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
@@ -840,17 +827,7 @@ class Employee {
     }
 
     /**
-     * Issue #24 - Áp dụng Transaction cho Giao tác Sa thải / Nghỉ việc.
-     *
-     * Bọc chung trong 1 transaction: Soft-delete nhân viên (employees) + Chấm dứt
-     * (terminate) toàn bộ hợp đồng đang active của nhân viên đó (employee_contracts).
-     * Dùng FOR UPDATE để khoá bản ghi nhân viên + các hợp đồng active, tránh trường hợp
-     * 1 request khác đang đồng thời sửa hợp đồng (vd tái ký) trong lúc nhân viên bị sa thải.
-     *
-     * Lưu ý: đồng thời sửa lại đúng theo ràng buộc CHECK của bảng employees
-     * (chk_employee_status_resigned): status = 'resigned' bắt buộc phải có resigned_date.
-     * Code cũ (softDelete) set status = 'inactive' là chưa đúng nghiệp vụ "nghỉ việc".
-     *
+     * Issue #24 
      * @return array{employee_id:int, terminated_contracts:int}
      * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
      */
