@@ -9,15 +9,9 @@ class EmployeeContract {
     private PDO $db;
 
     public function __construct(?PDO $dbConnection = null) {
-        // Cho phép truyền PDO từ bên ngoài (khi đang chạy trong 1 transaction lớn hơn),
-        // nếu không sẽ lấy connection singleton mặc định - giữ tương thích ngược với
-        // các nơi cũ đang gọi `new EmployeeContract($db)`.
         $this->db = $dbConnection ?? Database::getConnection();
     }
 
-    // ---------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------
 
     private function generateContractCode(int $employeeId): string {
         return 'HD' . date('ymdHis') . '-' . $employeeId . '-' . random_int(100, 999);
@@ -52,12 +46,6 @@ class EmployeeContract {
         ];
     }
 
-    // ---------------------------------------------------------------------
-    // Internal building blocks - LUÔN nhận $pdo từ bên ngoài, KHÔNG tự mở
-    // transaction, để có thể tái sử dụng an toàn bên trong 1 transaction lớn hơn
-    // (vd Employee::createWithInitialContract, EmployeeController::update()).
-    // ---------------------------------------------------------------------
-
     public function insertContract(PDO $pdo, int $employeeId, array $data): int {
         $prepared = $this->validateContractData($data);
         $contractCode = trim((string)($data['contract_code'] ?? '')) ?: $this->generateContractCode($employeeId);
@@ -82,11 +70,6 @@ class EmployeeContract {
         return (int)$pdo->lastInsertId();
     }
 
-    /**
-     * Khoá (FOR UPDATE) toàn bộ hợp đồng đang active của 1 nhân viên.
-     * Bắt buộc phải gọi bên trong 1 transaction đang mở, để tránh 2 giao tác
-     * đồng thời (vd Sa thải + Tái ký hợp đồng cùng lúc) cùng sửa 1 bản ghi.
-     */
     public function lockActiveContractsForEmployee(PDO $pdo, int $employeeId): array {
         $stmt = $pdo->prepare("
             SELECT id, contract_code, status
@@ -130,15 +113,10 @@ class EmployeeContract {
         return $count;
     }
 
-    // ---------------------------------------------------------------------
-    // Public entrypoints - tự mở Database::transaction(). Vì wrapper hỗ trợ
-    // gọi lồng (nested), các hàm này vẫn AN TOÀN khi được gọi từ bên trong
-    // 1 transaction lớn hơn đang mở sẵn (sẽ tự dùng chung transaction đó).
-    // ---------------------------------------------------------------------
 
     /**
-     * #23 - Tạo hợp đồng đầu tiên khi tiếp nhận nhân sự mới.
-     */
+     * #23 
+    */
     public function createInitial(int $employeeId, array $contractData): int {
         return Database::transaction(function (PDO $pdo) use ($employeeId, $contractData) {
             return $this->insertContract($pdo, $employeeId, $contractData);
@@ -146,7 +124,7 @@ class EmployeeContract {
     }
 
     /**
-     * #24 - Chấm dứt toàn bộ hợp đồng active khi nhân viên sa thải/nghỉ việc.
+     * #24 
      */
     public function terminateForResignation(int $employeeId, ?string $reason = null): int {
         return Database::transaction(function (PDO $pdo) use ($employeeId, $reason) {
@@ -155,7 +133,7 @@ class EmployeeContract {
     }
 
     /**
-     * #25 - Tái ký hợp đồng: chấm dứt hợp đồng active hiện tại (nếu có) rồi tạo hợp đồng mới.
+     * #25 
      */
     public function createRenewal(int $employeeId, array $newContractData, ?string $renewalNote = null): int {
         return Database::transaction(function (PDO $pdo) use ($employeeId, $newContractData, $renewalNote) {
@@ -164,11 +142,6 @@ class EmployeeContract {
         });
     }
 
-    // ---------------------------------------------------------------------
-    // Các hàm sẵn có - giữ nguyên hành vi cũ
-    // ---------------------------------------------------------------------
-
-    // Lấy danh sách hợp đồng kèm thông tin nhân viên và trạng thái động (Dynamic Status)
     public function getAllWithDynamicStatus() {
         $sql = "
             SELECT 
@@ -191,9 +164,7 @@ class EmployeeContract {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Xóa mềm hợp đồng không làm Cascade (Bảo toàn lịch sử theo đúng Acceptance Criteria)
     public function softDelete($id) {
-        // Đổi mã hợp đồng để giải phóng UNIQUE
         $stmt = $this->db->prepare("SELECT contract_code FROM employee_contracts WHERE id = :id");
         $stmt->execute([':id' => $id]);
         $contract = $stmt->fetch(PDO::FETCH_ASSOC);

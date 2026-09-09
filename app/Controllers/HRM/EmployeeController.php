@@ -446,10 +446,8 @@ class EmployeeController {
                 ], 409);
             }
 
-            // Issue #23: Áp dụng Transaction cho Giao tác Tiếp nhận Nhân sự.
-            // Tạo nhân viên + tạo hợp đồng lao động ban đầu trong cùng 1 transaction,
-            // để tránh trường hợp có nhân viên nhưng thiếu hợp đồng (hoặc ngược lại)
-            // nếu 1 trong 2 bước gặp lỗi giữa chừng.
+            // Issue #23
+            
             $contractSalary = (float)($input['salary'] ?? $input['contract_salary'] ?? 0);
 
             if ($contractSalary <= 0) {
@@ -907,13 +905,9 @@ class EmployeeController {
                 }
 
                 $newContractId = $renewalResult['new_contract_id'];
-                // department_id đã được cập nhật bên trong transaction ở trên rồi,
-                // bỏ khỏi $data để tránh update trùng lặp ở bước dưới.
                 unset($data['department_id']);
             }
 
-            // Các field còn lại (full_name, phone, position_id, ...) không bắt buộc phải
-            // atomic với việc tái ký hợp đồng, nên cập nhật bình thường như cũ.
             if (!empty($data)) {
                 $this->employeeModel->update($employeeId, $data);
             }
@@ -1427,10 +1421,8 @@ class EmployeeController {
                 ], 404);
             }
 
-            // Issue #24: Áp dụng Transaction cho Giao tác Sa thải / Nghỉ việc.
-            // Soft-delete nhân viên + chấm dứt (terminate) toàn bộ hợp đồng đang active
-            // của họ trong cùng 1 transaction, có khoá FOR UPDATE để tránh xung đột với
-            // các giao tác khác (vd tái ký hợp đồng) đang chạy song song trên cùng nhân viên.
+            // Issue #24
+            
             $input = $this->getInput();
             $reason = trim((string)($input['reason'] ?? '')) ?: null;
 
