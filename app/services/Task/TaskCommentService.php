@@ -45,12 +45,12 @@ class TaskCommentService {
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    public static function getByTask($taskId) {
 
+    public static function getByTask($taskId) {
         $conn = Database::getConnection();
 
         $stmt = $conn->prepare("
-            SELECT 
+            SELECT
                 tc.id,
                 tc.task_id,
                 tc.comment_text,
@@ -70,223 +70,309 @@ class TaskCommentService {
     }
 
     public static function create($taskId, $userId, $data) {
-        $conn = Database::getConnection();
+        $content = trim((string)($data['content'] ?? ''));
 
-        $content = trim($data['content']);
+        if ($content === '') {
+            throw new Exception("Comment content is required");
+        }
 
-        $stmt = $conn->prepare("
-            INSERT INTO task_comments (task_id, user_id, comment_text)
-            VALUES (?, ?, ?)
-        ");
-        $stmt->execute([$taskId, $userId, $content]);
-
-        // actor
-        $stmt = $conn->prepare("SELECT full_name, role FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $actor = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // activity log
-        TaskActivityService::log(
+        return Database::transaction(function (PDO $conn) use (
             $taskId,
             $userId,
-            TaskAction::COMMENT,
-            "{$actor['full_name']} added comment"
-        );
+            $content
+        ) {
+            $stmt = $conn->prepare("
+                SELECT assigner_id, assignee_id, watcher_id
+                FROM tasks
+                WHERE id = ?
+                FOR UPDATE
+            ");
+            $stmt->execute([$taskId]);
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // task info
-        $stmt = $conn->prepare("
-            SELECT assigner_id, assignee_id, watcher_id 
-            FROM tasks WHERE id = ?
-        ");
-        $stmt->execute([$taskId]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
 
-        $userIds = array_unique(array_filter([
-            $task['assigner_id'],
-            $task['assignee_id'],
-            $task['watcher_id']
-        ]));
+            $stmt = $conn->prepare("
+                SELECT full_name, role
+                FROM employees
+                WHERE id = ?
+            ");
+            $stmt->execute([$userId]);
+            $actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $userIds = array_filter($userIds, fn($id) => $id != $userId);
+            if (!$actor) {
+                throw new Exception("User not found");
+            }
 
-        $who = in_array($actor['role'], ['admin', 'manager'])
-            ? "Manager {$actor['full_name']}"
-            : $actor['full_name'];
+            $stmt = $conn->prepare("
+                INSERT INTO task_comments
+                (
+                    task_id,
+                    user_id,
+                    comment_text
+                )
+                VALUES (?, ?, ?)
+            ");
 
-        NotificationService::sendToMany(
-            $userIds,
-            "$who đã comment trong task"
-        );
+            $stmt->execute([
+                $taskId,
+                $userId,
+                $content
+            ]);
 
-        return [
-            "id" => $conn->lastInsertId(),
-            "task_id" => $taskId,
-            "user_id" => $userId,
-            "comment_text" => $content
-        ];
+            $commentId = (int)$conn->lastInsertId();
+
+            TaskActivityService::log(
+                $taskId,
+                $userId,
+                TaskAction::COMMENT,
+                "{$actor['full_name']} added comment",
+                $conn
+            );
+
+            $userIds = array_unique(array_filter([
+                $task['assigner_id'],
+                $task['assignee_id'],
+                $task['watcher_id']
+            ]));
+
+            $userIds = array_filter(
+                $userIds,
+                fn($id) => (int)$id !== (int)$userId
+            );
+
+            $who = in_array($actor['role'], ['admin', 'manager'], true)
+                ? "Manager {$actor['full_name']}"
+                : $actor['full_name'];
+
+            NotificationService::sendToMany(
+                $userIds,
+                "{$who} đã thêm bình luận mới vào task",
+                $conn
+            );
+
+            return [
+                "id" => $commentId,
+                "comment_text" => $content
+            ];
+        });
     }
 
     public static function update($commentId, $userId, $data) {
-        $conn = Database::getConnection();
+        $content = trim((string)($data['content'] ?? ''));
 
-        // lấy comment
-        $stmt = $conn->prepare("
-            SELECT user_id, task_id FROM task_comments WHERE id = ?
-        ");
-        $stmt->execute([$commentId]);
-        $comment = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$comment) {
-            throw new Exception("Comment not found");
+        if ($content === '') {
+            throw new Exception("Comment content is required");
         }
 
-        // lấy role
-        $stmt = $conn->prepare("SELECT role, full_name FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // check quyền
-        if (
-            $comment['user_id'] != $userId &&
-            !in_array($user['role'], ['admin', 'manager'])
-        ) {
-            throw new Exception("Permission denied");
-        }
-
-        $content = trim($data['content']);
-
-        $stmt = $conn->prepare("
-            UPDATE task_comments
-            SET comment_text = ?, updated_at = NOW()
-            WHERE id = ?
-        ");
-        $stmt->execute([$content, $commentId]);
-
-        // activity log
-        TaskActivityService::log(
-            $comment['task_id'],
+        return Database::transaction(function (PDO $conn) use (
+            $commentId,
             $userId,
-            TaskAction::UPDATE,
-            "{$user['full_name']} updated a comment"
-        );
+            $content
+        ) {
+            // lấy và khóa comment
+            $stmt = $conn->prepare("
+                SELECT user_id, task_id
+                FROM task_comments
+                WHERE id = ?
+                FOR UPDATE
+            ");
+            $stmt->execute([$commentId]);
+            $comment = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // task info
-        $stmt = $conn->prepare("
-            SELECT assigner_id, assignee_id, watcher_id 
-            FROM tasks WHERE id = ?
-        ");
-        $stmt->execute([$comment['task_id']]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$comment) {
+                throw new Exception("Comment not found");
+            }
 
-        $who = in_array($user['role'], ['admin', 'manager'])
-            ? "manager {$user['full_name']}"
-            : $user['full_name'];
+            // lấy role
+            $stmt = $conn->prepare("
+                SELECT role, full_name
+                FROM employees
+                WHERE id = ?
+            ");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // notify owner
-        NotificationService::send(
-            $comment['user_id'],
-            "Comment của bạn đã được cập nhật bởi $who"
-        );
+            if (!$user) {
+                throw new Exception("User not found");
+            }
 
-        // notify others
-        $userIds = array_unique(array_filter([
-            $task['assigner_id'],
-            $task['assignee_id'],
-            $task['watcher_id']
-        ]));
+            // check quyền
+            if (
+                $comment['user_id'] != $userId &&
+                !in_array($user['role'], ['admin', 'manager'], true)
+            ) {
+                throw new Exception("Permission denied");
+            }
 
-        $userIds = array_filter($userIds, fn($id) =>
-            $id != $userId && $id != $comment['user_id']
-        );
+            $stmt = $conn->prepare("
+                UPDATE task_comments
+                SET comment_text = ?, updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$content, $commentId]);
 
-        NotificationService::sendToMany(
-            $userIds,
-            "Comment của task đã được cập nhật bởi $who"
-        );
+            TaskActivityService::log(
+                $comment['task_id'],
+                $userId,
+                TaskAction::UPDATE,
+                "{$user['full_name']} updated a comment",
+                $conn
+            );
 
-        return [
-            "id" => $commentId,
-            "comment_text" => $content
-        ];
+            $stmt = $conn->prepare("
+                SELECT assigner_id, assignee_id, watcher_id
+                FROM tasks
+                WHERE id = ?
+            ");
+            $stmt->execute([$comment['task_id']]);
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
+
+            $who = in_array($user['role'], ['admin', 'manager'], true)
+                ? "manager {$user['full_name']}"
+                : $user['full_name'];
+
+            if ((int)$comment['user_id'] !== (int)$userId) {
+                NotificationService::send(
+                    $comment['user_id'],
+                    "Comment của bạn đã được cập nhật bởi $who",
+                    $conn
+                );
+            }
+
+            $userIds = array_unique(array_filter([
+                $task['assigner_id'],
+                $task['assignee_id'],
+                $task['watcher_id']
+            ]));
+
+            $userIds = array_filter(
+                $userIds,
+                fn($id) =>
+                    (int)$id !== (int)$userId &&
+                    (int)$id !== (int)$comment['user_id']
+            );
+
+            NotificationService::sendToMany(
+                $userIds,
+                "Comment của task đã được cập nhật bởi $who",
+                $conn
+            );
+
+            return [
+                "id" => $commentId,
+                "comment_text" => $content
+            ];
+        });
     }
 
     public static function delete($commentId, $userId) {
-        $conn = Database::getConnection();
-
-        // lấy comment
-        $stmt = $conn->prepare("
-            SELECT user_id, task_id FROM task_comments WHERE id = ?
-        ");
-        $stmt->execute([$commentId]);
-        $comment = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$comment) {
-            throw new Exception("Comment not found");
-        }
-
-        // lấy user (actor)
-        $stmt = $conn->prepare("SELECT role, full_name FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // check quyền
-        if (
-            $comment['user_id'] != $userId &&
-            !in_array($user['role'], ['admin', 'manager'])
+        return Database::transaction(function (PDO $conn) use (
+            $commentId,
+            $userId
         ) {
-            throw new Exception("Permission denied");
-        }
+            // lấy và khóa comment
+            $stmt = $conn->prepare("
+                SELECT user_id, task_id, comment_text
+                FROM task_comments
+                WHERE id = ?
+                FOR UPDATE
+            ");
+            $stmt->execute([$commentId]);
+            $comment = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // xoá comment
-        $stmt = $conn->prepare("
-            DELETE FROM task_comments WHERE id = ?
-        ");
-        $stmt->execute([$commentId]);
+            if (!$comment) {
+                throw new Exception("Comment not found");
+            }
 
-        // activity log
-        TaskActivityService::log(
-            $comment['task_id'],
-            $userId,
-            TaskAction::DELETE,
-            "{$user['full_name']} đã xóa 1 comment"
-        );
+            // lấy user actor
+            $stmt = $conn->prepare("
+                SELECT role, full_name
+                FROM employees
+                WHERE id = ?
+            ");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // lấy task info
-        $stmt = $conn->prepare("
-            SELECT assigner_id, assignee_id, watcher_id 
-            FROM tasks WHERE id = ?
-        ");
-        $stmt->execute([$comment['task_id']]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$user) {
+                throw new Exception("User not found");
+            }
 
-        // xác định người thực hiện
-        $who = in_array($user['role'], ['admin', 'manager'])
-            ? "manager {$user['full_name']}"
-            : $user['full_name'];
+            if (
+                $comment['user_id'] != $userId &&
+                !in_array($user['role'], ['admin', 'manager'], true)
+            ) {
+                throw new Exception("Permission denied");
+            }
 
-        // 1. notify owner comment
-        NotificationService::send(
-            $comment['user_id'],
-            "Comment của bạn đã bị xoá bởi $who"
-        );
+            // lấy task info trước khi xóa comment
+            $stmt = $conn->prepare("
+                SELECT assigner_id, assignee_id, watcher_id
+                FROM tasks
+                WHERE id = ?
+            ");
+            $stmt->execute([$comment['task_id']]);
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // 2. notify assignee + assigner + watcher
-        $userIds = array_unique(array_filter([
-            $task['assigner_id'],
-            $task['assignee_id'],
-            $task['watcher_id']
-        ]));
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
 
-        // loại actor + owner (tránh spam)
-        $userIds = array_filter($userIds, function ($id) use ($userId, $comment) {
-            return $id != $userId && $id != $comment['user_id'];
+            $stmt = $conn->prepare("
+                DELETE FROM task_comments
+                WHERE id = ?
+            ");
+            $stmt->execute([$commentId]);
+
+            TaskActivityService::log(
+                $comment['task_id'],
+                $userId,
+                TaskAction::DELETE,
+                "{$user['full_name']} deleted a comment",
+                $conn
+            );
+
+            $who = in_array($user['role'], ['admin', 'manager'], true)
+                ? "manager {$user['full_name']}"
+                : $user['full_name'];
+
+            if ((int)$comment['user_id'] !== (int)$userId) {
+                NotificationService::send(
+                    $comment['user_id'],
+                    "Comment của bạn đã bị xoá bởi $who",
+                    $conn
+                );
+            }
+
+            $userIds = array_unique(array_filter([
+                $task['assigner_id'],
+                $task['assignee_id'],
+                $task['watcher_id']
+            ]));
+
+            $userIds = array_filter(
+                $userIds,
+                fn($id) =>
+                    (int)$id !== (int)$userId &&
+                    (int)$id !== (int)$comment['user_id']
+            );
+
+            NotificationService::sendToMany(
+                $userIds,
+                "Một comment của task đã bị xoá bởi $who",
+                $conn
+            );
+
+            return [
+                "id" => (int)$commentId,
+                "deleted" => true
+            ];
         });
-
-        NotificationService::sendToMany(
-            $userIds,
-            "Một comment trong task đã bị xoá bởi $who"
-        );
-
-        return true;
     }
 }
