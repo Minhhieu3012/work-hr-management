@@ -446,7 +446,18 @@ class EmployeeController {
                 ], 409);
             }
 
-            $employeeId = $this->employeeModel->create([
+            // Issue #23
+            
+            $contractSalary = (float)($input['salary'] ?? $input['contract_salary'] ?? 0);
+
+            if ($contractSalary <= 0) {
+                $this->json([
+                    'status' => 'error',
+                    'message' => 'Vui lòng nhập mức lương hợp đồng (salary) lớn hơn 0 khi tiếp nhận nhân sự mới.'
+                ], 422);
+            }
+
+            $result = $this->employeeModel->createWithInitialContract([
                 'department_id' => $input['department_id'] ?? null,
                 'position_id' => $input['position_id'] ?? null,
                 'manager_id' => $input['manager_id'] ?? null,
@@ -463,14 +474,23 @@ class EmployeeController {
                 'remaining_leave_days' => $input['remaining_leave_days'] ?? 12,
                 'status' => $input['status'] ?? 'active',
                 'hire_date' => $input['hire_date'] ?? date('Y-m-d'),
+            ], [
+                'contract_type' => $input['contract_type'] ?? 'probation',
+                'start_date' => $input['contract_start_date'] ?? ($input['hire_date'] ?? date('Y-m-d')),
+                'end_date' => $input['contract_end_date'] ?? null,
+                'salary' => $contractSalary,
+                'note' => $input['contract_note'] ?? null,
             ]);
 
-            $employee = $this->employeeModel->findProfileById($employeeId);
+            $employee = $this->employeeModel->findProfileById($result['employee_id']);
 
             $this->json([
                 'status' => 'success',
-                'message' => 'Admin đã tạo tài khoản thành công.',
-                'data' => $this->withoutPassword($employee)
+                'message' => 'Admin đã tạo tài khoản và hợp đồng lao động ban đầu thành công.',
+                'data' => [
+                    'employee' => $this->withoutPassword($employee),
+                    'contract_id' => $result['contract_id'],
+                ]
             ], 201);
         } catch (Throwable $e) {
             $this->json([
@@ -850,13 +870,59 @@ class EmployeeController {
                 ], 422);
             }
 
-            $this->employeeModel->update($employeeId, $data);
+            // Issue #25: Áp dụng Transaction cho Giao tác Cập nhật Phòng ban & Tái ký Hợp đồng.
+            // Khi request vừa đổi department_id, vừa gửi kèm dữ liệu hợp đồng mới (contract_salary),
+            // xem đây là 1 giao tác "chuyển phòng ban kèm tái ký hợp đồng" và bọc chung transaction:
+            // update department_id + chấm dứt hợp đồng cũ + tạo hợp đồng mới.
+            $wantsContractRenewal = array_key_exists('department_id', $data)
+                && $data['department_id'] !== null
+                && isset($input['contract_salary'])
+                && (float)$input['contract_salary'] > 0;
+
+            $newContractId = null;
+
+            if ($wantsContractRenewal) {
+                try {
+                    $renewalResult = $this->employeeModel->updateDepartmentAndRenewContract(
+                        $employeeId,
+                        (int)$data['department_id'],
+                        [
+                            'contract_type' => $input['contract_type'] ?? 'fixed_term',
+                            'start_date' => $input['contract_start_date'] ?? date('Y-m-d'),
+                            'end_date' => $input['contract_end_date'] ?? null,
+                            'salary' => (float)$input['contract_salary'],
+                            'note' => $input['contract_note'] ?? null,
+                        ]
+                    );
+                } catch (\RuntimeException $e) {
+                    if ($e->getMessage() === 'EMPLOYEE_NOT_FOUND') {
+                        $this->json([
+                            'status' => 'error',
+                            'message' => 'Không tìm thấy nhân viên.'
+                        ], 404);
+                    }
+                    throw $e;
+                }
+
+                $newContractId = $renewalResult['new_contract_id'];
+                unset($data['department_id']);
+            }
+
+            if (!empty($data)) {
+                $this->employeeModel->update($employeeId, $data);
+            }
+
             $updated = $this->employeeModel->findProfileById($employeeId);
 
             $this->json([
                 'status' => 'success',
-                'message' => 'Cập nhật hồ sơ thành công.',
-                'data' => $this->withoutPassword($updated)
+                'message' => $wantsContractRenewal
+                    ? 'Cập nhật phòng ban và tái ký hợp đồng thành công.'
+                    : 'Cập nhật hồ sơ thành công.',
+                'data' => [
+                    'employee' => $this->withoutPassword($updated),
+                    'new_contract_id' => $newContractId,
+                ]
             ]);
         } catch (Throwable $e) {
             $this->json([
@@ -1355,11 +1421,26 @@ class EmployeeController {
                 ], 404);
             }
 
-            $this->employeeModel->softDelete($employeeId);
+            // Issue #24
+            
+            $input = $this->getInput();
+            $reason = trim((string)($input['reason'] ?? '')) ?: null;
+
+            try {
+                $result = $this->employeeModel->softDeleteWithContractTermination($employeeId, $reason);
+            } catch (\RuntimeException $e) {
+                if ($e->getMessage() === 'EMPLOYEE_NOT_FOUND') {
+                    $this->json([
+                        'status' => 'error',
+                        'message' => 'Không tìm thấy nhân viên.'
+                    ], 404);
+                }
+                throw $e;
+            }
 
             $this->json([
                 'status' => 'success',
-                'message' => 'Đã xóa mềm nhân sự.'
+                'message' => 'Đã xóa mềm nhân sự và chấm dứt ' . $result['terminated_contracts'] . ' hợp đồng liên quan.'
             ]);
         } catch (Throwable $e) {
             $this->json([

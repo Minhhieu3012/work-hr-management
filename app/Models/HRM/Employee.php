@@ -4,6 +4,7 @@ namespace App\Models\HRM;
 use Core\Database;
 use Exception;
 use PDO;
+use RuntimeException;
 use Throwable;
 
 class Employee {
@@ -485,6 +486,72 @@ class Employee {
         return (int)$this->db->lastInsertId();
     }
 
+    /** 
+     * Issue #23 
+     *
+     * @param array $employeeData Dữ liệu nhân viên, cùng format với create().
+     * @param array $contractData Dữ liệu hợp đồng: contract_type, start_date, end_date, salary, note.
+     * @return array{employee_id:int, contract_id:int}
+     */
+    public function createWithInitialContract(array $employeeData, array $contractData): array {
+        $prepared = $this->prepareCreateData($employeeData);
+
+        return Database::transaction(function (PDO $pdo) use ($prepared, $contractData) {
+            $stmt = $pdo->prepare("
+                INSERT INTO employees
+                (
+                    department_id, position_id, manager_id, employee_code, full_name,
+                    email, password, role, phone, gender, date_of_birth, address, avatar,
+                    total_leave_days, remaining_leave_days, status, hire_date, resigned_date
+                )
+                VALUES
+                (
+                    :department_id, :position_id, :manager_id, :employee_code, :full_name,
+                    :email, :password, :role, :phone, :gender, :date_of_birth, :address, :avatar,
+                    :total_leave_days, :remaining_leave_days, :status, :hire_date, :resigned_date
+                )
+            ");
+
+            try {
+                $stmt->execute([
+                    ':department_id' => $prepared['department_id'],
+                    ':position_id' => $prepared['position_id'],
+                    ':manager_id' => $prepared['manager_id'],
+                    ':employee_code' => $prepared['employee_code'],
+                    ':full_name' => $prepared['full_name'],
+                    ':email' => $prepared['email'],
+                    ':password' => $prepared['password'],
+                    ':role' => $prepared['role'],
+                    ':phone' => $prepared['phone'],
+                    ':gender' => $prepared['gender'],
+                    ':date_of_birth' => $prepared['date_of_birth'],
+                    ':address' => $prepared['address'],
+                    ':avatar' => $prepared['avatar'],
+                    ':total_leave_days' => $prepared['total_leave_days'],
+                    ':remaining_leave_days' => $prepared['remaining_leave_days'],
+                    ':status' => $prepared['status'],
+                    ':hire_date' => $prepared['hire_date'],
+                    ':resigned_date' => $prepared['resigned_date'],
+                ]);
+            } catch (\PDOException $e) {
+                if ((string)$e->getCode() === '23000') {
+                    throw new Exception('Email hoặc mã nhân viên đã tồn tại trong hệ thống.');
+                }
+                throw $e;
+            }
+
+            $employeeId = (int)$pdo->lastInsertId();
+
+            $contractModel = new EmployeeContract($pdo);
+            $contractId = $contractModel->insertContract($pdo, $employeeId, $contractData);
+
+            return [
+                'employee_id' => $employeeId,
+                'contract_id' => $contractId,
+            ];
+        });
+    }
+
     public function createPendingAccount(array $data, int $managerId): int {
         $role = $this->normalizeRole($data['role'] ?? 'employee');
 
@@ -662,6 +729,58 @@ class Employee {
         return $stmt->execute($params);
     }
 
+    /**
+     * Issue #25 
+     * @param array $newContractData Dữ liệu hợp đồng mới: contract_type, start_date, end_date, salary, note.
+     * @return array{employee_id:int, new_department_id:int, new_contract_id:int}
+     * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
+     */
+    public function updateDepartmentAndRenewContract(int $employeeId, int $newDepartmentId, array $newContractData): array {
+        return Database::transaction(function (PDO $pdo) use ($employeeId, $newDepartmentId, $newContractData) {
+            $stmt = $pdo->prepare("
+                SELECT id, department_id
+                FROM employees
+                WHERE id = :id
+                  AND deleted_at IS NULL
+                FOR UPDATE
+            ");
+            $stmt->execute([':id' => $employeeId]);
+            $employee = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$employee) {
+                throw new RuntimeException('EMPLOYEE_NOT_FOUND');
+            }
+
+            $updateStmt = $pdo->prepare("
+                UPDATE employees
+                SET department_id = :department_id,
+                    updated_at = NOW()
+                WHERE id = :id
+                  AND deleted_at IS NULL
+            ");
+            $updateStmt->execute([
+                ':department_id' => $newDepartmentId,
+                ':id' => $employeeId,
+            ]);
+
+            $contractModel = new EmployeeContract($pdo);
+            // createRenewal() tự mở Database::transaction(), nhưng vì đang ở trong
+            // transaction cha (pdo->inTransaction() === true), wrapper sẽ tự nhận biết
+            // và chạy trực tiếp trong transaction cha - không mở transaction lồng thật sự.
+            $newContractId = $contractModel->createRenewal(
+                $employeeId,
+                $newContractData,
+                'Tái ký hợp đồng do chuyển phòng ban (từ department_id=' . $employee['department_id'] . ' sang ' . $newDepartmentId . ')'
+            );
+
+            return [
+                'employee_id' => $employeeId,
+                'new_department_id' => $newDepartmentId,
+                'new_contract_id' => $newContractId,
+            ];
+        });
+    }
+
     public function getAvatar($id) {
         $stmt = $this->db->prepare("
             SELECT avatar
@@ -705,6 +824,47 @@ class Employee {
         return $stmt->execute([
             ':id' => (int)$id,
         ]);
+    }
+
+    /**
+     * Issue #24 
+     * @return array{employee_id:int, terminated_contracts:int}
+     * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
+     */
+    public function softDeleteWithContractTermination(int $id, ?string $reason = null): array {
+        return Database::transaction(function (PDO $pdo) use ($id, $reason) {
+            $stmt = $pdo->prepare("
+                SELECT id
+                FROM employees
+                WHERE id = :id
+                  AND deleted_at IS NULL
+                FOR UPDATE
+            ");
+            $stmt->execute([':id' => $id]);
+
+            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new RuntimeException('EMPLOYEE_NOT_FOUND');
+            }
+
+            $updateStmt = $pdo->prepare("
+                UPDATE employees
+                SET deleted_at = NOW(),
+                    status = 'resigned',
+                    resigned_date = CURRENT_DATE,
+                    updated_at = NOW()
+                WHERE id = :id
+                  AND deleted_at IS NULL
+            ");
+            $updateStmt->execute([':id' => $id]);
+
+            $contractModel = new EmployeeContract($pdo);
+            $terminatedCount = $contractModel->terminateActiveContracts($pdo, $id, $reason);
+
+            return [
+                'employee_id' => $id,
+                'terminated_contracts' => $terminatedCount,
+            ];
+        });
     }
 
     public function adjustLeaveBalance($employeeId, $adjustDays, $reason, $createdBy = null) {

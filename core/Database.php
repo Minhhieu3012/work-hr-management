@@ -45,4 +45,28 @@ class Database {
         }
         return self::$instance->connection;
     }
+
+public static function transaction(callable $callback)
+{
+    $pdo = static::getConnection();
+    $isAlreadyInTransaction = $pdo->inTransaction();
+
+    if (!$isAlreadyInTransaction) {
+        $pdo->beginTransaction();
+    }
+
+    try {
+        $result = $callback($pdo);
+        if (!$isAlreadyInTransaction && $pdo->inTransaction()) {
+            $pdo->commit();
+        }
+        return $result;
+    } catch (\Throwable $e) {
+        if (!$isAlreadyInTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
 }

@@ -42,4 +42,48 @@ class EmployeeContractController {
         }
         exit;
     }
+
+public function updateDepartmentAndRenew($employeeId): void
+{
+    $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+
+    $departmentId = $input['department_id'] ?? null;
+    $contractType = $input['contract_type'] ?? 'fixed_term'; // Hợp lệ: probation, fixed_term, indefinite
+    $salary = (float)($input['salary'] ?? 0);
+
+    if (empty($departmentId) || $salary <= 0) {
+        header('Content-Type: application/json');
+        http_response_code(422);
+        echo json_encode(['status' => 'error', 'message' => 'Dữ liệu phòng ban hoặc mức lương không hợp lệ.']);
+        return;
+    }
+
+    $contractData = [
+        'contract_type' => $contractType,
+        'start_date'    => $input['start_date'] ?? date('Y-m-d'),
+        'end_date'      => $input['end_date'] ?? null,
+        'salary'        => $salary,
+    ];
+
+    try {
+        $employeeModel = new \App\Models\HRM\Employee();
+        $success = $employeeModel->updateDepartmentAndRenewContract((int)$employeeId, (int)$departmentId, $contractData);
+
+        header('Content-Type: application/json');
+        if ($success) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Đã cập nhật phòng ban mới và tái ký hợp đồng thành công.'
+            ]);
+            return;
+        }
+
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Tái ký hợp đồng thất bại.']);
+    } catch (\Throwable $e) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+}
 }
