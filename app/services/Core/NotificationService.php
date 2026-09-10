@@ -7,8 +7,8 @@ use PDO;
 use Throwable;
 
 class NotificationService {
-    private static function connection(): PDO {
-        $conn = Database::getConnection();
+    private static function connection(?PDO $pdo = null): PDO {
+        $conn = $pdo ?? Database::getConnection();
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         return $conn;
@@ -30,7 +30,7 @@ class NotificationService {
         return max(0, $offset);
     }
 
-    public static function send($userId, $message): bool {
+    public static function send($userId, $message, ?PDO $pdo = null): bool {
         $userId = (int)$userId;
         $message = trim((string)$message);
 
@@ -38,7 +38,7 @@ class NotificationService {
             return false;
         }
 
-        $conn = self::connection();
+        $conn = self::connection($pdo);
 
         $stmt = $conn->prepare("
             INSERT INTO notifications
@@ -61,26 +61,26 @@ class NotificationService {
         ]);
     }
 
-    public static function sendToMany($userIds, $message): void {
+    public static function sendToMany($userIds, $message, ?PDO $pdo = null): void {
         if (!is_array($userIds)) {
             $userIds = [$userIds];
         }
 
         foreach (array_unique(array_map('intval', $userIds)) as $id) {
             if ($id > 0) {
-                self::send($id, $message);
+                self::send($id, $message, $pdo);
             }
         }
     }
 
-    public static function getUserIdsByRole(string $role): array {
+    public static function getUserIdsByRole(string $role, ?PDO $pdo = null): array {
         $role = strtolower(trim($role));
 
         if ($role === '') {
             return [];
         }
 
-        $conn = self::connection();
+        $conn = self::connection($pdo);
 
         $stmt = $conn->prepare("
             SELECT id
@@ -97,16 +97,16 @@ class NotificationService {
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    public static function sendToRole(string $role, string $message): void {
-        self::sendToMany(self::getUserIdsByRole($role), $message);
+    public static function sendToRole(string $role, string $message, ?PDO $pdo = null): void {
+        self::sendToMany(self::getUserIdsByRole($role, $pdo), $message, $pdo);
     }
 
-    public static function sendToAdmins(string $message): void {
-        self::sendToRole('admin', $message);
+    public static function sendToAdmins(string $message, ?PDO $pdo = null): void {
+        self::sendToRole('admin', $message, $pdo);
     }
 
-    public static function sendToManagers(string $message): void {
-        self::sendToRole('manager', $message);
+    public static function sendToManagers(string $message, ?PDO $pdo = null): void {
+        self::sendToRole('manager', $message, $pdo);
     }
 
     public static function getByUser($userId, $limit = 20, $offset = 0): array {
@@ -229,25 +229,25 @@ class NotificationService {
         return $stmt->rowCount();
     }
 
-    public static function safeSend($userId, $message): void {
+    public static function safeSend($userId, $message, ?PDO $pdo = null): void {
         try {
-            self::send($userId, $message);
+            self::send($userId, $message, $pdo);
         } catch (Throwable $e) {
             // Notification không được làm hỏng flow chính.
         }
     }
 
-    public static function safeSendToMany($userIds, $message): void {
+    public static function safeSendToMany($userIds, $message, ?PDO $pdo = null): void {
         try {
-            self::sendToMany($userIds, $message);
+            self::sendToMany($userIds, $message, $pdo);
         } catch (Throwable $e) {
             // Notification không được làm hỏng flow chính.
         }
     }
 
-    public static function safeSendToAdmins($message): void {
+    public static function safeSendToAdmins($message, ?PDO $pdo = null): void {
         try {
-            self::sendToAdmins($message);
+            self::sendToAdmins($message, $pdo);
         } catch (Throwable $e) {
             // Notification không được làm hỏng flow chính.
         }

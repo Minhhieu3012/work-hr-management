@@ -6,6 +6,7 @@ use Exception;
 use PDO;
 use App\Services\Task\TaskActivityService;
 use App\Enums\TaskAction;
+use App\Models\Task\TaskModel;
 
 class TaskAssignService
 {
@@ -58,23 +59,9 @@ class TaskAssignService
                 throw new Exception("Permission denied");
             }
 
-            // Khóa task trước khi đọc trạng thái
-            $stmt = $conn->prepare("
-                SELECT
-                    id,
-                    project_id,
-                    title,
-                    status,
-                    assignee_id,
-                    watcher_id
-                FROM tasks
-                WHERE id = ?
-                LIMIT 1
-                FOR UPDATE
-            ");
-
-            $stmt->execute([$taskId]);
-            $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Khóa task ở tầng Model trước khi đọc trạng thái
+            $taskModel = new TaskModel();
+            $task = $taskModel->findByIdForUpdate($taskId);
 
             if (!$task) {
                 throw new Exception("Task not found");
@@ -179,7 +166,8 @@ class TaskAssignService
                     $taskId,
                     $assignerId,
                     TaskAction::ASSIGN,
-                    "Added watcher to task \"$title\""
+                    "Added watcher to task \"$title\"",
+                    $conn
                 );
 
                 if ($oldWatcherId) {
@@ -389,7 +377,8 @@ class TaskAssignService
                     : TaskAction::ASSIGN,
                 $isReassign
                     ? "Reassigned task \"$title\""
-                    : "Assigned task \"$title\""
+                    : "Assigned task \"$title\"",
+                $conn
             );
 
             // Thông báo assignee mới

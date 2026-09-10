@@ -3,15 +3,19 @@ namespace App\Services\Task;
 
 use Core\Database;
 use Exception;
+use PDO;
 use App\Enums\TaskAction;
-
 
 class TaskActivityService {
 
-    
-     public static function log($taskId, $userId, $action, $description = null) {
-
-        $conn = Database::getConnection();
+    public static function log(
+        $taskId,
+        $userId,
+        $action,
+        $description = null,
+        ?PDO $pdo = null
+    ) {
+        $conn = $pdo ?? Database::getConnection();
 
         // 1. validate action ENUM
         if (!in_array($action, TaskAction::all())) {
@@ -44,11 +48,11 @@ class TaskActivityService {
             $taskId,
             $userId,
             $action,
-            trim($description)
+            $description !== null ? trim((string)$description) : null
         ]);
     }
 
-    //  get history
+    // get history
     public static function getByTask($taskId, $userId) {
 
         $conn = Database::getConnection();
@@ -69,6 +73,10 @@ class TaskActivityService {
         $stmt = $conn->prepare("SELECT role FROM employees WHERE id = ?");
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
+
+        if (!$user) {
+            throw new Exception("User not found");
+        }
 
         if (
             $task['assignee_id'] != $userId &&

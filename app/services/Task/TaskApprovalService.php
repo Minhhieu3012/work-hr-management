@@ -7,180 +7,187 @@ use Core\Database;
 use App\Enums\TaskAction;
 use App\Services\Task\TaskActivityService;
 use App\Services\Core\NotificationService;
+use App\Models\Task\TaskModel;
 
 class TaskApprovalService {
 
     public static function submit($taskId, $userId) {
 
-        $conn = Database::getConnection();
+        return Database::transaction(function (PDO $conn) use ($taskId, $userId) {
 
-        // check task
-        $stmt = $conn->prepare("SELECT title, status, assignee_id FROM tasks WHERE id = ?");
-        $stmt->execute([$taskId]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            // khóa task ở tầng Model để toàn bộ flow dùng chung cơ chế locking
+            $taskModel = new TaskModel();
+            $task = $taskModel->findByIdForUpdate((int)$taskId);
 
-        if (!$task) {
-            throw new Exception("Task not found");
-        }
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
 
-        if ($task['assignee_id'] != $userId) {
-            throw new Exception("You are not assigned to this task");
-        }
+            if ($task['assignee_id'] != $userId) {
+                throw new Exception("You are not assigned to this task");
+            }
 
-        if ($task['status'] !== 'Doing') {
-            throw new Exception("Only Doing tasks can be submitted");
-        }
+            if ($task['status'] !== 'Doing') {
+                throw new Exception("Only Doing tasks can be submitted");
+            }
 
-        // update
-        $stmt = $conn->prepare("UPDATE tasks SET status = 'Review' WHERE id = ?");
-        $stmt->execute([$taskId]);
+            $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
+            $stmt->execute([$userId]);
+            $actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $actor = $stmt->fetch(PDO::FETCH_ASSOC);
-        // activity log
-        TaskActivityService::log(
-            $taskId,
-            $userId,
-            TaskAction::STATUS_CHANGE,
-            "{$actor['full_name']} submitted task \"{$task['title']}\" for review"
-        );
+            if (!$actor) {
+                throw new Exception("User not found");
+            }
 
-        // notify assigner
-        $stmt = $conn->prepare("SELECT assigner_id FROM tasks WHERE id = ?");
-        $stmt->execute([$taskId]);
-        $data = $stmt->fetch();
+            // update
+            $stmt = $conn->prepare("UPDATE tasks SET status = 'Review' WHERE id = ?");
+            $stmt->execute([$taskId]);
 
-        if ($data && $data['assigner_id']) {
-            NotificationService::send(
-                $data['assigner_id'],
-                "Task \"{$task['title']}\" đã được submit bởi \"{$actor['full_name']}\" để review"
+            // activity log dùng cùng transaction
+            TaskActivityService::log(
+                $taskId,
+                $userId,
+                TaskAction::STATUS_CHANGE,
+                "{$actor['full_name']} submitted task \"{$task['title']}\" for review",
+                $conn
             );
-        }
 
-        return [
-            "task_id" => $taskId,
-            "status" => "Review"
-        ];
+            // notify assigner dùng cùng transaction
+            if ($task['assigner_id']) {
+                NotificationService::send(
+                    $task['assigner_id'],
+                    "Task \"{$task['title']}\" đã được submit bởi \"{$actor['full_name']}\" để review",
+                    $conn
+                );
+            }
+
+            return [
+                "task_id" => $taskId,
+                "status" => "Review"
+            ];
+        });
     }
 
     public static function approve($taskId, $userId) {
 
-        $conn = Database::getConnection();
+        return Database::transaction(function (PDO $conn) use ($taskId, $userId) {
 
-        // check role
-        $stmt = $conn->prepare("SELECT role FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            // check role
+            $stmt = $conn->prepare("SELECT role, full_name FROM employees WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!in_array($user['role'], ['admin', 'manager'])) {
-            throw new Exception("Permission denied");
-        }
+            if (!$user || !in_array($user['role'], ['admin', 'manager'])) {
+                throw new Exception("Permission denied");
+            }
 
-        // lấy thêm title + assignee name
-        $stmt = $conn->prepare("
-            SELECT t.title, t.status, e.full_name
-            FROM tasks t
-            LEFT JOIN employees e ON t.assignee_id = e.id
-            WHERE t.id = ?
-        ");
-        $stmt->execute([$taskId]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            // khóa task ở tầng Model trước khi kiểm tra trạng thái
+            $taskModel = new TaskModel();
+            $task = $taskModel->findByIdForUpdate((int)$taskId);
 
-        if ($task['status'] !== 'Review') {
-            throw new Exception("Task must be in Review state");
-        }
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
 
-        // update
-        $stmt = $conn->prepare("UPDATE tasks SET status = 'Done' WHERE id = ?");
-        $stmt->execute([$taskId]);
+            if ($task['status'] !== 'Review') {
+                throw new Exception("Task must be in Review state");
+            }
 
-        // lấy tên manager
-        $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $actor = $stmt->fetch(PDO::FETCH_ASSOC);
+            $assigneeName = null;
 
-        TaskActivityService::log(
-            $taskId,
-            $userId,
-            TaskAction::STATUS_CHANGE,
-            "{$actor['full_name']} approved task \"{$task['title']}\" → Done (Assignee: {$task['full_name']})"
-        );
-        // lấy assignee_id
-        $stmt = $conn->prepare("SELECT assignee_id FROM tasks WHERE id = ?");
-        $stmt->execute([$taskId]);
-        $data = $stmt->fetch();
+            if ($task['assignee_id']) {
+                $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
+                $stmt->execute([$task['assignee_id']]);
+                $assignee = $stmt->fetch(PDO::FETCH_ASSOC);
+                $assigneeName = $assignee['full_name'] ?? null;
+            }
 
-        if ($data && $data['assignee_id']) {
-            NotificationService::send(
-                $data['assignee_id'],
-                "Task \"{$task['title']}\" đã được duyệt bởi manager. DONE!"
+            // update
+            $stmt = $conn->prepare("UPDATE tasks SET status = 'Done' WHERE id = ?");
+            $stmt->execute([$taskId]);
+
+            TaskActivityService::log(
+                $taskId,
+                $userId,
+                TaskAction::STATUS_CHANGE,
+                "{$user['full_name']} approved task \"{$task['title']}\" → Done (Assignee: {$assigneeName})",
+                $conn
             );
-        }
 
-        return [
-            "task_id" => $taskId,
-            "status" => "Done"
-        ];
+            if ($task['assignee_id']) {
+                NotificationService::send(
+                    $task['assignee_id'],
+                    "Task \"{$task['title']}\" đã được duyệt bởi manager. DONE!",
+                    $conn
+                );
+            }
+
+            return [
+                "task_id" => $taskId,
+                "status" => "Done"
+            ];
+        });
     }
 
     public static function reject($taskId, $userId) {
 
-        $conn = Database::getConnection();
+        return Database::transaction(function (PDO $conn) use ($taskId, $userId) {
 
-        // check role
-        $stmt = $conn->prepare("SELECT role FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            // check role
+            $stmt = $conn->prepare("SELECT role, full_name FROM employees WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!in_array($user['role'], ['admin', 'manager'])) {
-            throw new Exception("Permission denied");
-        }
+            if (!$user || !in_array($user['role'], ['admin', 'manager'])) {
+                throw new Exception("Permission denied");
+            }
 
-        // lấy thêm title + assignee name
-        $stmt = $conn->prepare("
-            SELECT t.title, t.status, e.full_name
-            FROM tasks t
-            LEFT JOIN employees e ON t.assignee_id = e.id
-            WHERE t.id = ?
-        ");
-        $stmt->execute([$taskId]);
-        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            // khóa task ở tầng Model trước khi kiểm tra trạng thái
+            $taskModel = new TaskModel();
+            $task = $taskModel->findByIdForUpdate((int)$taskId);
 
-        if ($task['status'] !== 'Review') {
-            throw new Exception("Task must be in Review state");
-        }
+            if (!$task) {
+                throw new Exception("Task not found");
+            }
 
-        // update
-        $stmt = $conn->prepare("UPDATE tasks SET status = 'Doing' WHERE id = ?");
-        $stmt->execute([$taskId]);
+            if ($task['status'] !== 'Review') {
+                throw new Exception("Task must be in Review state");
+            }
 
-        // lấy tên manager
-        $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
-        $stmt->execute([$userId]);
-        $actor = $stmt->fetch(PDO::FETCH_ASSOC);
+            $assigneeName = null;
 
-        TaskActivityService::log(
-            $taskId,
-            $userId,
-            TaskAction::STATUS_CHANGE,
-            "{$actor['full_name']} rejected task \"{$task['title']}\" → Back to Doing (Assignee: {$task['full_name']})"
-        );
-        $stmt = $conn->prepare("SELECT assignee_id FROM tasks WHERE id = ?");
-        $stmt->execute([$taskId]);
-        $data = $stmt->fetch();
+            if ($task['assignee_id']) {
+                $stmt = $conn->prepare("SELECT full_name FROM employees WHERE id = ?");
+                $stmt->execute([$task['assignee_id']]);
+                $assignee = $stmt->fetch(PDO::FETCH_ASSOC);
+                $assigneeName = $assignee['full_name'] ?? null;
+            }
 
-        if ($data && $data['assignee_id']) {
-            NotificationService::send(
-                $data['assignee_id'],
-                "Task \"{$task['title']}\" bị từ chối bởi manager \"{$actor['full_name']}\". Yêu cầu làm lại!"
+            // update
+            $stmt = $conn->prepare("UPDATE tasks SET status = 'Doing' WHERE id = ?");
+            $stmt->execute([$taskId]);
+
+            TaskActivityService::log(
+                $taskId,
+                $userId,
+                TaskAction::STATUS_CHANGE,
+                "{$user['full_name']} rejected task \"{$task['title']}\" → Back to Doing (Assignee: {$assigneeName})",
+                $conn
             );
-        }
 
-        return [
-            "task_id" => $taskId,
-            "status" => "Doing"
-        ];
+            if ($task['assignee_id']) {
+                NotificationService::send(
+                    $task['assignee_id'],
+                    "Task \"{$task['title']}\" bị từ chối bởi manager \"{$user['full_name']}\". Yêu cầu làm lại!",
+                    $conn
+                );
+            }
+
+            return [
+                "task_id" => $taskId,
+                "status" => "Doing"
+            ];
+        });
     }
 
     public static function getTasksInReview($userId) {
