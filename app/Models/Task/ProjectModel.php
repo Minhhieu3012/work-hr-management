@@ -288,6 +288,44 @@ class ProjectModel {
         return $project;
     }
 
+    public function findByIdForUpdate(int $id): ?array {
+        if (!$this->db->inTransaction()) {
+            throw new RuntimeException('findByIdForUpdate phải được gọi bên trong Transaction.');
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT
+                p.id,
+                p.name,
+                p.description,
+                p.manager_id,
+                p.client_id,
+                p.status,
+                p.created_at,
+                p.updated_at
+            FROM projects p
+            WHERE p.id = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $stmt->execute([
+            ':id' => $id,
+        ]);
+
+        $project = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$project) {
+            return null;
+        }
+
+        $project['id'] = (int)$project['id'];
+        $project['manager_id'] = $project['manager_id'] !== null ? (int)$project['manager_id'] : null;
+        $project['client_id'] = $project['client_id'] !== null ? (int)$project['client_id'] : null;
+
+        return $project;
+    }
+
     private function decorateProject(array $project): array {
         $totalTasks = (int)($project['total_tasks'] ?? 0);
         $doneTasks = (int)($project['done_tasks'] ?? 0);
@@ -543,11 +581,26 @@ class ProjectModel {
         }
 
         $memberIds = $this->normalizeMemberIds($memberIds);
+        sort($memberIds, SORT_NUMERIC);
 
-        $this->db->beginTransaction();
+        Database::transaction(function (PDO $conn) use ($projectId, $memberIds, $addedBy) {
+            $stmt = $conn->prepare("
+                SELECT id
+                FROM projects
+                WHERE id = :project_id
+                LIMIT 1
+                FOR UPDATE
+            ");
 
-        try {
-            $stmt = $this->db->prepare("
+            $stmt->execute([
+                ':project_id' => $projectId,
+            ]);
+
+            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new RuntimeException('Không tìm thấy dự án.');
+            }
+
+            $stmt = $conn->prepare("
                 UPDATE project_members
                 SET
                     status = 'inactive',
@@ -562,12 +615,7 @@ class ProjectModel {
             foreach ($memberIds as $employeeId) {
                 $this->addMember($projectId, $employeeId, $addedBy, 'member');
             }
-
-            $this->db->commit();
-        } catch (\Throwable $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
+        });
     }
 
     public function isEmployeeInProject(int $projectId, int $employeeId): bool {

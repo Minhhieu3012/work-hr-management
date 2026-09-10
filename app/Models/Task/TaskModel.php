@@ -418,6 +418,50 @@ class TaskModel {
         return $this->decorateTask($task);
     }
 
+    public function findByIdForUpdate(int $id): ?array {
+        if (!$this->db->inTransaction()) {
+            throw new RuntimeException('findByIdForUpdate phải được gọi bên trong Transaction.');
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT
+                t.id,
+                t.project_id,
+                t.title,
+                t.description,
+                t.status,
+                t.priority,
+                t.deadline,
+                t.assigner_id,
+                t.assignee_id,
+                t.watcher_id,
+                t.created_at,
+                t.updated_at
+            FROM tasks t
+            WHERE t.id = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $stmt->execute([
+            ':id' => $id,
+        ]);
+
+        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$task) {
+            return null;
+        }
+
+        $task['id'] = (int)$task['id'];
+        $task['project_id'] = $task['project_id'] !== null ? (int)$task['project_id'] : null;
+        $task['assigner_id'] = $task['assigner_id'] !== null ? (int)$task['assigner_id'] : null;
+        $task['assignee_id'] = $task['assignee_id'] !== null ? (int)$task['assignee_id'] : null;
+        $task['watcher_id'] = $task['watcher_id'] !== null ? (int)$task['watcher_id'] : null;
+
+        return $task;
+    }
+
     public function canUserAccessTask(array $authUser, int $taskId): bool {
         $task = $this->findById($taskId);
 
