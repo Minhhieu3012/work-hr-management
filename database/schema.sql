@@ -181,13 +181,13 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; -- THÊM ENGINE
 
 -- 10. Task Activity Logs
 CREATE TABLE task_activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
-    user_id INT NOT NULL,
+    user_id INT NULL,
 
     action ENUM(
         'create',
@@ -205,8 +205,8 @@ CREATE TABLE task_activity_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
-);
+    FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 11. Task Attachments
 CREATE TABLE task_attachments (
