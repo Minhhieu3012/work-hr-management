@@ -294,14 +294,10 @@ class ManagerRegistrationController {
     public function store(): void {
         try {
             if (!$this->tableExists('employees')) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Bảng employees chưa tồn tại.'
-                ], 500);
+                $this->json(['status' => 'error', 'message' => 'Bảng employees chưa tồn tại.'], 500);
             }
 
             $input = $this->getInput();
-
             $fullName = trim((string)($input['full_name'] ?? ''));
             $companyName = trim((string)($input['company_name'] ?? ''));
             $email = $this->normalizeEmail((string)($input['email'] ?? ''));
@@ -310,115 +306,83 @@ class ManagerRegistrationController {
             $passwordConfirm = (string)($input['password_confirm'] ?? '');
             $note = trim((string)($input['note'] ?? ''));
 
-            if ($fullName === '') {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Vui lòng nhập họ và tên.'
-                ], 422);
-            }
-
-            if ($companyName === '') {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Vui lòng nhập tên công ty hoặc đội nhóm.'
-                ], 422);
-            }
-
+            if ($fullName === '') { $this->json(['status' => 'error', 'message' => 'Vui lòng nhập họ và tên.'], 422); }
+            if ($companyName === '') { $this->json(['status' => 'error', 'message' => 'Vui lòng nhập tên công ty hoặc đội nhóm.'], 422); }
             $this->validateEmail($email);
-
-            if (strlen($password) < 6) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Mật khẩu tối thiểu 6 ký tự.'
-                ], 422);
-            }
-
-            if ($password !== $passwordConfirm) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Mật khẩu xác nhận không khớp.'
-                ], 422);
-            }
+            if (strlen($password) < 6) { $this->json(['status' => 'error', 'message' => 'Mật khẩu tối thiểu 6 ký tự.'], 422); }
+            if ($password !== $passwordConfirm) { $this->json(['status' => 'error', 'message' => 'Mật khẩu xác nhận không khớp.'], 422); }
 
             $this->ensureEmailAvailable($email);
 
-            $departmentId = $this->resolveReferenceId(
-                'departments',
-                'Phòng Dự án',
-                'Project Management',
-                'Phòng dành cho các tài khoản Manager quản lý workspace.'
-            );
+            // Toàn bộ phần ghi dữ liệu (có thể tạo mới department/position + insert employee)
+            // được bọc trong transaction wrapper, tự động retry nếu deadlock.
+            $managerId = \Core\Database::transaction(function (\PDO $pdo) use (
+                $fullName, $companyName, $email, $phone, $password, $note
+            ) {
+                $departmentId = $this->resolveReferenceId(
+                    'departments', 'Phòng Dự án', 'Project Management',
+                    'Phòng dành cho các tài khoản Manager quản lý workspace.'
+                );
 
-            $positionId = $this->resolveReferenceId(
-                'positions',
-                'Project Manager',
-                'Manager',
-                'Chức vụ mặc định cho tài khoản Manager đăng ký từ landing page.'
-            );
+                $positionId = $this->resolveReferenceId(
+                    'positions', 'Project Manager', 'Manager',
+                    'Chức vụ mặc định cho tài khoản Manager đăng ký từ landing page.'
+                );
 
-            $employeeCode = $this->generateEmployeeCode();
-            $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+                $employeeCode = $this->generateEmployeeCode();
+                $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-            $columns = [];
-            $values = [];
-            $params = [];
+                $columns = [];
+                $values = [];
+                $params = [];
 
-            $put = function (string $column, $value) use (&$columns, &$values, &$params): void {
-                if ($this->columnExists('employees', $column)) {
-                    $param = ':' . $column;
-                    $columns[] = $column;
-                    $values[] = $param;
-                    $params[$param] = $value;
+                $put = function (string $column, $value) use (&$columns, &$values, &$params): void {
+                    if ($this->columnExists('employees', $column)) {
+                        $param = ':' . $column;
+                        $columns[] = $column;
+                        $values[] = $param;
+                        $params[$param] = $value;
+                    }
+                };
+
+                $put('department_id', $departmentId);
+                $put('position_id', $positionId);
+                $put('manager_id', null);
+                $put('employee_code', $employeeCode);
+                $put('full_name', $fullName);
+                $put('email', $email);
+                $put('password', $passwordHash);
+                $put('role', 'manager');
+                $put('phone', $phone !== '' ? $phone : null);
+                $put('gender', 'other');
+                $put('date_of_birth', '1999-01-01');
+
+                $addressParts = [$companyName];
+                if ($note !== '') { $addressParts[] = 'Ghi chú: ' . $note; }
+                $put('address', implode(' | ', $addressParts));
+
+                $put('avatar', null);
+                $put('total_leave_days', 12);
+                $put('remaining_leave_days', 12);
+                $put('status', 'inactive');
+                $put('hire_date', date('Y-m-d'));
+                $put('resigned_date', null);
+                $put('deleted_at', null);
+
+                if (empty($columns)) {
+                    throw new \RuntimeException('Không xác định được cột hợp lệ để tạo tài khoản.');
                 }
-            };
 
-            $put('department_id', $departmentId);
-            $put('position_id', $positionId);
-            $put('manager_id', null);
-            $put('employee_code', $employeeCode);
-            $put('full_name', $fullName);
-            $put('email', $email);
-            $put('password', $passwordHash);
-            $put('role', 'manager');
-            $put('phone', $phone !== '' ? $phone : null);
-            $put('gender', 'other');
-            $put('date_of_birth', '1999-01-01');
+                $sql = "INSERT INTO employees (" . implode(', ', $columns) . ")
+                        VALUES (" . implode(', ', $values) . ")";
 
-            $addressParts = [$companyName];
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
 
-            if ($note !== '') {
-                $addressParts[] = 'Ghi chú: ' . $note;
-            }
+                return (int)$pdo->lastInsertId();
+            });
 
-            $put('address', implode(' | ', $addressParts));
-            $put('avatar', null);
-            $put('total_leave_days', 12);
-            $put('remaining_leave_days', 12);
-            $put('status', 'inactive');
-            $put('hire_date', date('Y-m-d'));
-            $put('resigned_date', null);
-            $put('deleted_at', null);
-
-            if (empty($columns)) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Không xác định được cột hợp lệ để tạo tài khoản.'
-                ], 500);
-            }
-
-            $sql = "
-                INSERT INTO employees
-                (" . implode(', ', $columns) . ")
-                VALUES
-                (" . implode(', ', $values) . ")
-            ";
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
-
-            $managerId = (int)$this->db->lastInsertId();
-
-            $this->notifyAdmins($fullName);
+            $this->notifyAdmins($fullName); // ngoài transaction, không cần rollback nếu lỗi
 
             $this->json([
                 'status' => 'success',
