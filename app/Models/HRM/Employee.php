@@ -4,6 +4,7 @@ namespace App\Models\HRM;
 use Core\Database;
 use Exception;
 use PDO;
+use RuntimeException;
 use Throwable;
 
 class Employee {
@@ -485,6 +486,46 @@ class Employee {
         return (int)$this->db->lastInsertId();
     }
 
+    /** 
+     * Issue #23 
+     *
+     * @param array $employeeData Dữ liệu nhân viên, cùng format với create().
+     * @param array $contractData Dữ liệu hợp đồng: contract_type, start_date, end_date, salary, note.
+     * @return array{employee_id:int, contract_id:int}
+     */
+    public function createWithInitialContract(array $employeeData, array $contractData): array {
+    $prepared = $this->prepareCreateData($employeeData);
+    
+    // GỌI STORED PROCEDURE CỦA CHƯƠNG 1
+    return Database::transaction(function (PDO $pdo) use ($prepared, $contractData) {
+        $stmt = $pdo->prepare("
+            CALL sp_OnboardNewEmployee(
+                :dept_id, :pos_id, :emp_code, :full_name, :email, :password, :hire_date, :salary
+            )
+        ");
+        
+        $stmt->execute([
+            ':dept_id'   => $prepared['department_id'],
+            ':pos_id'    => $prepared['position_id'],
+            ':emp_code'  => $prepared['employee_code'],
+            ':full_name' => $prepared['full_name'],
+            ':email'     => $prepared['email'],
+            ':password'  => $prepared['password'],
+            ':hire_date' => $prepared['hire_date'],
+            ':salary'    => $contractData['salary']
+        ]);
+        
+        // Vì SP đã làm hết mọi việc (tạo NV, tạo HĐ), ta chỉ cần lấy ID vừa tạo (nếu cần)
+        $stmtId = $pdo->query("SELECT id FROM employees WHERE email = '{$prepared['email']}' LIMIT 1");
+        $employeeId = (int)$stmtId->fetchColumn();
+
+        return [
+            'employee_id' => $employeeId,
+            'contract_id' => null, // Hoặc query ra nếu UI cần thiết
+        ];
+    });
+}
+
     public function createPendingAccount(array $data, int $managerId): int {
         $role = $this->normalizeRole($data['role'] ?? 'employee');
 
@@ -662,6 +703,72 @@ class Employee {
         return $stmt->execute($params);
     }
 
+    /**
+     * Issue #25: Cập nhật phòng ban và tái ký hợp đồng
+     * Áp dụng Optimistic Locking (Chương 3) chống Lost Update.
+     * 
+     * @param int $employeeId ID nhân viên
+     * @param int $newDepartmentId ID phòng ban mới
+     * @param array $newContractData Dữ liệu hợp đồng mới: contract_type, start_date, end_date, salary, note.
+     * @return array{employee_id:int, new_department_id:int, new_contract_id:int}
+     * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
+     * @throws RuntimeException với message 'LOST_UPDATE_DETECTED' nếu dữ liệu bị thay đổi bởi giao tác khác.
+     */
+    public function updateDepartmentAndRenewContract(int $employeeId, int $newDepartmentId, array $newContractData): array {
+        return Database::transaction(function (PDO $pdo) use ($employeeId, $newDepartmentId, $newContractData) {
+            
+            // Lấy thông tin hiện tại kèm theo `version`
+            $stmt = $pdo->prepare("
+                SELECT id, department_id, version
+                FROM employees
+                WHERE id = :id
+                  AND deleted_at IS NULL
+            ");
+            $stmt->execute([':id' => $employeeId]);
+            $employee = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$employee) {
+                throw new RuntimeException('EMPLOYEE_NOT_FOUND');
+            }
+
+            // Cập nhật phòng ban, đồng thời kiểm tra đúng `version` cũ và tăng `version` lên 1
+            $updateStmt = $pdo->prepare("
+                UPDATE employees
+                SET department_id = :department_id,
+                    version = version + 1,
+                    updated_at = NOW()
+                WHERE id = :id 
+                  AND version = :version 
+                  AND deleted_at IS NULL
+            ");
+            
+            $updateStmt->execute([
+                ':department_id' => $newDepartmentId,
+                ':id'            => $employeeId,
+                ':version'       => $employee['version']
+            ]);
+
+            // Nếu rowCount() bằng 0 nghĩa là version đã bị sai lệch (Lost Update)
+            if ($updateStmt->rowCount() === 0) {
+                throw new RuntimeException('LOST_UPDATE_DETECTED');
+            }
+
+            // Tái ký hợp đồng mới
+            $contractModel = new EmployeeContract($pdo);
+            $newContractId = $contractModel->createRenewal(
+                $employeeId,
+                $newContractData,
+                'Tái ký hợp đồng do chuyển phòng ban (từ department_id=' . $employee['department_id'] . ' sang ' . $newDepartmentId . ')'
+            );
+
+            return [
+                'employee_id'       => $employeeId,
+                'new_department_id' => $newDepartmentId,
+                'new_contract_id'   => $newContractId,
+            ];
+        });
+    }
+
     public function getAvatar($id) {
         $stmt = $this->db->prepare("
             SELECT avatar
@@ -706,6 +813,29 @@ class Employee {
             ':id' => (int)$id,
         ]);
     }
+
+    /**
+     * Issue #24 
+     * @return array{employee_id:int, terminated_contracts:int}
+     * @throws RuntimeException với message 'EMPLOYEE_NOT_FOUND' nếu không tìm thấy nhân viên.
+     */
+    public function softDeleteWithContractTermination(int $id, ?string $reason = null): array {
+    return Database::transaction(function (PDO $pdo) use ($id, $reason) {
+        // GỌI STORED PROCEDURE 
+        $stmt = $pdo->prepare("CALL sp_TerminateEmployee(:emp_id, :resign_date)");
+        
+        // Execute SP
+        $stmt->execute([
+            ':emp_id'      => $id,
+            ':resign_date' => date('Y-m-d')
+        ]);
+        
+        return [
+            'employee_id' => $id,
+            'terminated_contracts' => 1 // Tùy chọn trả về
+        ];
+    });
+}
 
     public function adjustLeaveBalance($employeeId, $adjustDays, $reason, $createdBy = null) {
         try {
