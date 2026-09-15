@@ -62,7 +62,7 @@ CREATE TABLE employees (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'manager', 'employee') NOT NULL DEFAULT 'employee',
+    role ENUM('admin', 'manager', 'employee', 'client') NOT NULL DEFAULT 'employee',
     phone VARCHAR(20) NULL,
     gender ENUM('male', 'female', 'other') NULL,
     date_of_birth DATE NULL,

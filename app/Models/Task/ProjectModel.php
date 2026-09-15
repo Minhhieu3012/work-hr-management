@@ -288,6 +288,44 @@ class ProjectModel {
         return $project;
     }
 
+    public function findByIdForUpdate(int $id): ?array {
+        if (!$this->db->inTransaction()) {
+            throw new RuntimeException('findByIdForUpdate phải được gọi bên trong Transaction.');
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT
+                p.id,
+                p.name,
+                p.description,
+                p.manager_id,
+                p.client_id,
+                p.status,
+                p.created_at,
+                p.updated_at
+            FROM projects p
+            WHERE p.id = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $stmt->execute([
+            ':id' => $id,
+        ]);
+
+        $project = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$project) {
+            return null;
+        }
+
+        $project['id'] = (int)$project['id'];
+        $project['manager_id'] = $project['manager_id'] !== null ? (int)$project['manager_id'] : null;
+        $project['client_id'] = $project['client_id'] !== null ? (int)$project['client_id'] : null;
+
+        return $project;
+    }
+
     private function decorateProject(array $project): array {
         $totalTasks = (int)($project['total_tasks'] ?? 0);
         $doneTasks = (int)($project['done_tasks'] ?? 0);
@@ -303,105 +341,109 @@ class ProjectModel {
     }
 
     public function create(array $data, int $managerId): int {
-        $name = trim((string)($data['name'] ?? ''));
-        $description = trim((string)($data['description'] ?? ''));
-        $clientId = $this->normalizeId($data['client_id'] ?? null);
-        $status = $this->normalizeStatus($data['status'] ?? 'Active');
+        return Database::transaction(function (PDO $conn) use ($data, $managerId) {
+            $name = trim((string)($data['name'] ?? ''));
+            $description = trim((string)($data['description'] ?? ''));
+            $clientId = $this->normalizeId($data['client_id'] ?? null);
+            $status = $this->normalizeStatus($data['status'] ?? 'Active');
 
-        if ($name === '') {
-            throw new RuntimeException('Tên dự án không được để trống.');
-        }
+            if ($name === '') {
+                throw new RuntimeException('Tên dự án không được để trống.');
+            }
 
-        $stmt = $this->db->prepare("
-            INSERT INTO projects
-            (
-                name,
-                description,
-                manager_id,
-                client_id,
-                status
-            )
-            VALUES
-            (
-                :name,
-                :description,
-                :manager_id,
-                :client_id,
-                :status
-            )
-        ");
+            $stmt = $conn->prepare("
+                INSERT INTO projects
+                (
+                    name,
+                    description,
+                    manager_id,
+                    client_id,
+                    status
+                )
+                VALUES
+                (
+                    :name,
+                    :description,
+                    :manager_id,
+                    :client_id,
+                    :status
+                )
+            " );
 
-        $stmt->execute([
-            ':name' => $name,
-            ':description' => $description !== '' ? $description : null,
-            ':manager_id' => $managerId,
-            ':client_id' => $clientId,
-            ':status' => $status,
-        ]);
+            $stmt->execute([
+                ':name' => $name,
+                ':description' => $description !== '' ? $description : null,
+                ':manager_id' => $managerId,
+                ':client_id' => $clientId,
+                ':status' => $status,
+            ]);
 
-        $projectId = (int)$this->db->lastInsertId();
+            $projectId = (int)$conn->lastInsertId();
 
-        $memberIds = $this->normalizeMemberIds($data['member_ids'] ?? []);
-        $this->syncMembers($projectId, $memberIds, $managerId);
+            $memberIds = $this->normalizeMemberIds($data['member_ids'] ?? []);
+            $this->syncMembers($projectId, $memberIds, $managerId);
 
-        return $projectId;
+            return $projectId;
+        });
     }
 
     public function update(int $id, array $data, ?int $managerId = null): bool {
-        $project = $this->findById($id);
+        return Database::transaction(function (PDO $conn) use ($id, $data, $managerId) {
+            $project = $this->findByIdForUpdate($id);
 
-        if (!$project) {
-            throw new RuntimeException('Không tìm thấy dự án.');
-        }
+            if (!$project) {
+                throw new RuntimeException('Không tìm thấy dự án.');
+            }
 
-        if ($managerId !== null && (int)$project['manager_id'] !== $managerId) {
-            throw new RuntimeException('Bạn chỉ được cập nhật dự án do mình quản lý.');
-        }
+            if ($managerId !== null && (int)$project['manager_id'] !== $managerId) {
+                throw new RuntimeException('Bạn chỉ được cập nhật dự án do mình quản lý.');
+            }
 
-        $name = array_key_exists('name', $data)
-            ? trim((string)$data['name'])
-            : (string)$project['name'];
+            $name = array_key_exists('name', $data)
+                ? trim((string)$data['name'])
+                : (string)$project['name'];
 
-        if ($name === '') {
-            throw new RuntimeException('Tên dự án không được để trống.');
-        }
+            if ($name === '') {
+                throw new RuntimeException('Tên dự án không được để trống.');
+            }
 
-        $description = array_key_exists('description', $data)
-            ? trim((string)$data['description'])
-            : ($project['description'] ?? null);
+            $description = array_key_exists('description', $data)
+                ? trim((string)$data['description'])
+                : ($project['description'] ?? null);
 
-        $clientId = array_key_exists('client_id', $data)
-            ? $this->normalizeId($data['client_id'])
-            : $this->normalizeId($project['client_id'] ?? null);
+            $clientId = array_key_exists('client_id', $data)
+                ? $this->normalizeId($data['client_id'])
+                : $this->normalizeId($project['client_id'] ?? null);
 
-        $status = array_key_exists('status', $data)
-            ? $this->normalizeStatus($data['status'])
-            : $this->normalizeStatus($project['status'] ?? 'Active');
+            $status = array_key_exists('status', $data)
+                ? $this->normalizeStatus($data['status'])
+                : $this->normalizeStatus($project['status'] ?? 'Active');
 
-        $stmt = $this->db->prepare("
-            UPDATE projects
-            SET
-                name = :name,
-                description = :description,
-                client_id = :client_id,
-                status = :status
-            WHERE id = :id
-        ");
+            $stmt = $conn->prepare("
+                UPDATE projects
+                SET
+                    name = :name,
+                    description = :description,
+                    client_id = :client_id,
+                    status = :status
+                WHERE id = :id
+            " );
 
-        $result = $stmt->execute([
-            ':id' => $id,
-            ':name' => $name,
-            ':description' => $description !== '' ? $description : null,
-            ':client_id' => $clientId,
-            ':status' => $status,
-        ]);
+            $result = $stmt->execute([
+                ':id' => $id,
+                ':name' => $name,
+                ':description' => $description !== '' ? $description : null,
+                ':client_id' => $clientId,
+                ':status' => $status,
+            ]);
 
-        if (array_key_exists('member_ids', $data)) {
-            $memberIds = $this->normalizeMemberIds($data['member_ids']);
-            $this->syncMembers($id, $memberIds, $managerId);
-        }
+            if (array_key_exists('member_ids', $data)) {
+                $memberIds = $this->normalizeMemberIds($data['member_ids']);
+                $this->syncMembers($id, $memberIds, $managerId);
+            }
 
-        return $result;
+            return $result;
+        });
     }
 
     public function archive(int $id, ?int $managerId = null): bool {
@@ -543,11 +585,26 @@ class ProjectModel {
         }
 
         $memberIds = $this->normalizeMemberIds($memberIds);
+        sort($memberIds, SORT_NUMERIC);
 
-        $this->db->beginTransaction();
+        Database::transaction(function (PDO $conn) use ($projectId, $memberIds, $addedBy) {
+            $stmt = $conn->prepare("
+                SELECT id
+                FROM projects
+                WHERE id = :project_id
+                LIMIT 1
+                FOR UPDATE
+            ");
 
-        try {
-            $stmt = $this->db->prepare("
+            $stmt->execute([
+                ':project_id' => $projectId,
+            ]);
+
+            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new RuntimeException('Không tìm thấy dự án.');
+            }
+
+            $stmt = $conn->prepare("
                 UPDATE project_members
                 SET
                     status = 'inactive',
@@ -562,12 +619,7 @@ class ProjectModel {
             foreach ($memberIds as $employeeId) {
                 $this->addMember($projectId, $employeeId, $addedBy, 'member');
             }
-
-            $this->db->commit();
-        } catch (\Throwable $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
+        });
     }
 
     public function isEmployeeInProject(int $projectId, int $employeeId): bool {
