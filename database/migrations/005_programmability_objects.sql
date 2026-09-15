@@ -1,4 +1,4 @@
--- view 1: Hồ sơ nhân viên tổng hợp 
+-- View 1: Hồ sơ nhân viên tổng hợp 
 CREATE OR REPLACE VIEW vw_EmployeeProfiles AS 
 SELECT
     e.id, e.employee_code, e.full_name, e.email, e.phone, 
@@ -14,7 +14,7 @@ FROM employee e
 JOIN departments d ON e.department_id = d.id 
 JOIN positions p ON e.position_id = p.id; 
 
--- view 2: Tổng hợp nghỉ phép 
+-- View 2: Tổng hợp nghỉ phép 
 CREATE OR REPLACE VIEW vw_LeaveSummary AS 
 SELECT 
     employee_id, 
@@ -24,7 +24,7 @@ FROM leave_requests
 WHERE status = 'Approved'
 GROUP BY employee_id;
 
--- view 3: Tiến độ dự án 
+-- View 3: Tiến độ dự án 
 CREATE OR REPLACE VIEW vw_ProjectTaskProgress AS 
 SELECT 
     p.id AS project_id, p.name, 
@@ -162,3 +162,37 @@ DELIMITER ;
 -- =====================================
 -- =====================================
 
+DELIMITER $$
+
+-- Trigger 1: Bắt lỗi logic ngày hợp đồng trước khi Insert
+CREATE TRIGGER trg_ValidateContractDates_Insert
+BEFORE INSERT ON employee_contracts
+FOR EACH ROW
+BEGIN
+    IF NOT fn_IsValidDateRange(NEW.start_date, NEW.end_date) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ngày kết thúc hợp đồng phải lớn hơn ngày bắt đầu!';
+    END IF;
+END$$
+
+-- Trigger 2: Ngăn chặn cập nhật sai số ngày phép
+CREATE TRIGGER trg_CheckLeaveDays
+BEFORE UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    IF NEW.remaining_leave_days > NEW.total_leave_days THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Số ngày phép còn lại không được vượt quá tổng ngày phép!';
+    END IF;
+END$$
+
+-- Trigger 3: Ghi nhận lịch sử tự động khi cập nhật trạng thái Task
+CREATE TRIGGER trg_TaskStatusHistory
+AFTER UPDATE ON tasks
+FOR EACH ROW
+BEGIN
+    IF OLD.status != NEW.status THEN
+        INSERT INTO task_activity_logs (task_id, user_id, action, description)
+        VALUES (NEW.id, NEW.assigner_id, 'status_change', CONCAT('Trạng thái chuyển từ ', OLD.status, ' sang ', NEW.status));
+    END IF;
+END$$
+
+DELIMITER ;
