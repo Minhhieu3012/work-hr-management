@@ -53,6 +53,7 @@ CREATE TABLE employees (
     status ENUM('active', 'inactive', 'resigned', 'suspended') NOT NULL DEFAULT 'active',
     hire_date DATE NOT NULL, 
     resigned_date DATE NULL DEFAULT NULL,
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
@@ -131,6 +132,7 @@ CREATE TABLE projects (
     manager_id INT NULL,  
     client_id INT NULL,  
     status ENUM('Active', 'Completed', 'Archived') DEFAULT 'Active',
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL,
@@ -149,6 +151,7 @@ CREATE TABLE tasks (
     assigner_id INT, 
     assignee_id INT, 
     watcher_id INT,
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Opimistic Locking 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
@@ -229,7 +232,9 @@ CREATE TABLE leave_requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-    FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL
+    FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL,
+    
+    CONSTRAINT chk_leave_request_dates CHECK (end_date >= start_date) -- Bổ sung 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 11. Attendances 
