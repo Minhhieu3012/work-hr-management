@@ -172,7 +172,7 @@ CREATE TABLE task_comments (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Notifications
+-- 9. Notifications
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -183,7 +183,7 @@ CREATE TABLE notifications (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- Task Activity Logs
+-- 10. Task Activity Logs
 CREATE TABLE task_activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -208,7 +208,7 @@ CREATE TABLE task_activity_logs (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
--- 9. Task Attachments
+-- 11. Task Attachments
 CREATE TABLE task_attachments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     task_id INT NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE task_attachments (
     FOREIGN KEY (user_id) REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 10. Leave Requests
+-- 12. Leave Requests
 CREATE TABLE leave_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
@@ -229,6 +229,7 @@ CREATE TABLE leave_requests (
     end_date DATE NOT NULL,
     reason TEXT,
     status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    version INT UNSIGNED NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
@@ -237,7 +238,7 @@ CREATE TABLE leave_requests (
     CONSTRAINT chk_leave_request_dates CHECK (end_date >= start_date) -- Bổ sung 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 11. Attendances 
+-- 13. Attendances 
 CREATE TABLE attendances (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,

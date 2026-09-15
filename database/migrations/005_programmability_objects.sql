@@ -10,7 +10,7 @@ SELECT
         ELSE 'Khac'
     END AS status_vi, 
     e.hire_date, e.remaining_leave_days
-FROM employee e 
+FROM employees e 
 JOIN departments d ON e.department_id = d.id 
 JOIN positions p ON e.position_id = p.id; 
 
@@ -32,7 +32,7 @@ SELECT
     SUM(CASE WHEN t.status = 'Done' THEN 1 ELSE 0 END) AS completed_tasks, 
     (SUM(CASE WHEN t.status = 'Done' THEN 1 ELSE 0 END) / COUNT(t.id)) * 100 AS progress_percent
 FROM projects p 
-LEFT JOIN task t ON p.id = t.project_id
+LEFT JOIN tasks t ON p.id = t.project_id
 GROUP BY p.id, p.name;
 
 -- ========================================
@@ -87,8 +87,9 @@ DELIMITER ;
 -- ======================================
 
 DELIMITER $$
+
 -- Stored Procedures
--- SP 1: Tiếp nhận nhân sự mới (Atomicity & IF..ELSE)
+-- SP 1: Tiếp nhận nhân sự mới 
 CREATE PROCEDURE sp_OnboardNewEmployee(
     IN p_dept_id INT, IN p_pos_id INT, IN p_emp_code VARCHAR(50), 
     IN p_full_name VARCHAR(100), IN p_email VARCHAR(100), 
@@ -97,18 +98,31 @@ CREATE PROCEDURE sp_OnboardNewEmployee(
 BEGIN
     DECLARE v_emp_id INT;
     
-    -- Rẽ nhánh kiểm tra dữ liệu
+    -- CHƯƠNG 2: Khai báo Handler bắt ngoại lệ và tự động ROLLBACK
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        RESIGNAL; -- Ném lỗi ra ngoài cho tầng PHP (Controller) xử lý
+    END;
+    
     IF EXISTS (SELECT 1 FROM employees WHERE email = p_email OR employee_code = p_emp_code) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email hoặc Mã NV đã tồn tại!';
     ELSE
+        -- CHƯƠNG 2: Bắt đầu Giao tác để đảm bảo tính Atomicity (Nguyên tố)
+        START TRANSACTION;
+        
+        -- CHƯƠNG 4: Tránh Deadlock bằng Ordering Protocol (Luôn insert bảng cha trước)
         INSERT INTO employees (department_id, position_id, employee_code, full_name, email, password, hire_date)
         VALUES (p_dept_id, p_pos_id, p_emp_code, p_full_name, p_email, p_password, p_hire_date);
         
         SET v_emp_id = LAST_INSERT_ID();
         
-        -- Tạo hợp đồng thử việc tự động
+        -- (Sau đó mới insert bảng con)
         INSERT INTO employee_contracts (employee_id, contract_code, contract_type, start_date, salary, status)
         VALUES (v_emp_id, CONCAT('HD-', p_emp_code), 'probation', p_hire_date, 5000000, 'active');
+        
+        -- Chốt Giao tác
+        COMMIT;
     END IF;
 END$$
 
@@ -148,13 +162,29 @@ END$$
 -- SP 3: Sa thải nhân viên
 CREATE PROCEDURE sp_TerminateEmployee(IN p_emp_id INT, IN p_resign_date DATE)
 BEGIN
+    -- CHƯƠNG 2: Khai báo Handler tự động ROLLBACK nếu có lỗi
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    -- CHƯƠNG 2: Bắt đầu giao tác
+    START TRANSACTION;
+    
+    -- CHƯƠNG 4: Áp dụng Strict Ordering Protocol chống Deadlock
+    -- BƯỚC 1: Luôn khóa và cập nhật bảng 'employees' trước
     UPDATE employees 
     SET status = 'resigned', resigned_date = p_resign_date, version = version + 1
     WHERE id = p_emp_id AND status != 'resigned';
     
+    -- BƯỚC 2: Khóa và cập nhật bảng 'employee_contracts' sau
     UPDATE employee_contracts 
     SET status = 'terminated', end_date = p_resign_date
     WHERE employee_id = p_emp_id AND status = 'active';
+    
+    -- Hoàn tất
+    COMMIT;
 END$$
 
 DELIMITER ;
