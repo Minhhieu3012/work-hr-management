@@ -901,6 +901,13 @@ class EmployeeController {
                             'message' => 'Không tìm thấy nhân viên.'
                         ], 404);
                     }
+
+                    if ($e->getMessage() === 'LOST_UPDATE_DETECTED') {
+                        $this->json([
+                            'status' => 'error',
+                            'message' => 'Dữ liệu nhân sự này vừa được cập nhật bởi một người khác. Vui lòng tải lại trang để xem dữ liệu mới nhất!'
+                        ], 409); // 409 Conflict
+                    }
                     throw $e;
                 }
 
@@ -1434,6 +1441,13 @@ class EmployeeController {
                         'status' => 'error',
                         'message' => 'Không tìm thấy nhân viên.'
                     ], 404);
+                }
+
+                if ($e->getMessage() === 'LOST_UPDATE_DETECTED') {
+                    $this->json([
+                        'status' => 'error',
+                        'message' => 'Dữ liệu nhân sự này vừa được cập nhật bởi một người khác. Vui lòng tải lại trang để xem dữ liệu mới nhất!'
+                    ], 409); // 409 Conflict
                 }
                 throw $e;
             }
