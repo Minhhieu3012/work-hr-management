@@ -103,18 +103,48 @@ Authorization: Bearer <your_jwt_token>
 
 #### Ví dụ Request — `GET /api/tasks` với filter
 
-```
+```http
 GET /api/tasks?status=Review&project_id=1
 ```
 
 ---
 
-### Chấm công & Nghỉ phép
+### Chấm công & Nghỉ phép & Tính lương
 
 > Nhánh: `attendance-payroll` — **Tiến**
 
-| Method  | Endpoint                  | Mô tả                     |
-| ------- | ------------------------- | ------------------------- |
-| `POST`  | `/api/attendance/checkin` | Chấm công (Web check-in)  |
-| `POST`  | `/api/leaves`             | Gửi đơn xin nghỉ phép     |
-| `PATCH` | `/api/leaves/:id/approve` | Manager duyệt/từ chối đơn |
+| Method | Endpoint | Roles | Mô tả |
+| --- | --- | --- | --- |
+| `GET` | `/api/attendance` | `admin`, `manager`, `employee` | Lấy dữ liệu chấm công tháng hiện tại & lịch sử |
+| `POST` | `/api/attendance/checkin` | `manager`, `employee` | Chấm công vào (Web check-in) |
+| `POST` | `/api/attendance/checkout` | `manager`, `employee` | Chấm công ra (Web check-out) |
+| `POST` | `/api/attendance/payroll` | `admin`, `manager` | Tính bảng lương tháng (gọi Stored Procedure) |
+| `GET` | `/api/leaves` | `admin`, `manager`, `employee` | Lấy quỹ phép còn lại và lịch sử đơn nghỉ của cá nhân |
+| `GET` | `/api/admin/leaves` | `admin`, `manager` | Lấy danh sách đơn xin nghỉ đang chờ duyệt (`Pending`) |
+| `POST` | `/api/leaves` | `manager`, `employee` | Gửi đơn xin nghỉ phép |
+| `PATCH` | `/api/leaves/:id/approve` | `manager` | Phê duyệt (`Approved`) hoặc Từ chối (`Rejected`) đơn nghỉ |
+
+---
+
+#### Field `leave_type` - Allowed Values (Thống nhất với DB ENUM)
+
+| Giá trị     | Tên hiển thị      | Trừ quỹ phép năm (`remaining_leave_days`)? |
+| ----------- | ----------------- | ------------------------------------------ |
+| `Annual`    | Nghỉ phép năm     | Có (kiểm tra quỹ phép trước khi gửi/duyệt) |
+| `Personal`  | Nghỉ việc cá nhân | Có                                         |
+| `Sick`      | Nghỉ ốm           | Không (hưởng chế độ y tế / BHXH)           |
+| `Unpaid`    | Nghỉ không lương  | Không (cho phép gửi kể cả khi hết phép)     |
+| `Maternity` | Nghỉ thai sản     | Không (chế độ thai sản BHXH)               |
+
+> **Lưu ý quan trọng về nghỉ nửa ngày:** `half_day` **không** phải là loại nghỉ phép. Để xin nghỉ nửa ngày, chọn loại nghỉ tương ứng (`Annual`, `Personal`...) và gửi `duration: 0.5`. Hệ thống sẽ từ chối nếu truyền `leave_type: half_day`.
+
+#### Ví dụ Request — `POST /api/attendance/payroll`
+
+```json
+{
+  "month": 9,
+  "year": 2026
+}
+```
+
+> Hỗ trợ cả `POST /api/payroll/calculate` và truyền tham số qua Query String (`?month=9&year=2026`). Nếu không truyền, hệ thống sẽ mặc định tính cho tháng và năm hiện tại.

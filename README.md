@@ -101,6 +101,7 @@ database/schema.sql
 database/migrations/002_hrm_schema.sql
 database/migrations/003_employee_documents.sql
 database/migrations/004_operation_flow_schema.sql
+database/migrations/005_programmability_objects.sql
 ```
 
 3. **Seed Data (Optional):**
@@ -109,7 +110,7 @@ database/migrations/004_operation_flow_schema.sql
 database/seeders/002_hrm_seed_data.sql
 database/seeders/003_auth_task_test_seed.sql
 database/seeders/004_operation_flow_seed.sql
-database/seeders/005_programmability_objects.sql
+database/seeders/005_test_data.sql
 ```
 
 ### 4. Run the Application

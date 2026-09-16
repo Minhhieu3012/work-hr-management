@@ -173,36 +173,52 @@ class LeaveController
                 );
             }
 
-            $allowedTypes = [
-                'annual',
-                'sick',
-                'personal',
-                'half_day'
+            $typeMap = [
+                'annual'    => 'Annual',
+                'sick'      => 'Sick',
+                'unpaid'    => 'Unpaid',
+                'maternity' => 'Maternity',
+                'personal'  => 'Personal',
             ];
 
-            if (!in_array($leave_type, $allowedTypes, true)) {
+            $lowerType = strtolower(trim((string)$leave_type));
+
+            if ($lowerType === 'half_day') {
                 throw new Exception(
-                    'Loại nghỉ phép không hợp lệ.'
+                    'half_day không phải là loại nghỉ phép hợp lệ trong cơ sở dữ liệu. Vui lòng chọn loại nghỉ (như Nghỉ phép năm, Việc riêng,...) và nhập số ngày nghỉ là 0.5.'
                 );
             }
 
-            $stmtBalance = $this->pdo->prepare("
-                SELECT remaining_leave_days
-                FROM employees
-                WHERE id = ?
-            ");
-
-            $stmtBalance->execute([$emp_id]);
-
-            $current_balance = floatval(
-                $stmtBalance->fetchColumn()
-            );
-
-            if ($duration > $current_balance) {
+            if (!isset($typeMap[$lowerType])) {
                 throw new Exception(
-                    "Quỹ phép không đủ. Bạn xin nghỉ {$duration} ngày, "
-                    . "nhưng chỉ còn {$current_balance} ngày."
+                    'Loại nghỉ phép không hợp lệ. Các loại được hỗ trợ: Annual (Nghỉ phép năm), Sick (Nghỉ ốm), Personal (Nghỉ việc riêng), Unpaid (Nghỉ không lương), Maternity (Nghỉ thai sản).'
                 );
+            }
+
+            $leave_type = $typeMap[$lowerType];
+
+            // Chỉ kiểm tra số dư ngày phép đối với loại nghỉ trừ phép năm (Annual, Personal)
+            $deductsLeaveBalance = in_array($leave_type, ['Annual', 'Personal'], true);
+
+            if ($deductsLeaveBalance) {
+                $stmtBalance = $this->pdo->prepare("
+                    SELECT remaining_leave_days
+                    FROM employees
+                    WHERE id = ?
+                ");
+
+                $stmtBalance->execute([$emp_id]);
+
+                $current_balance = floatval(
+                    $stmtBalance->fetchColumn()
+                );
+
+                if ($duration > $current_balance) {
+                    throw new Exception(
+                        "Quỹ phép không đủ. Bạn xin nghỉ {$duration} ngày, "
+                        . "nhưng chỉ còn {$current_balance} ngày."
+                    );
+                }
             }
 
             $stmtInsert = $this->pdo->prepare("
@@ -339,78 +355,102 @@ class LeaveController
 
             $emp_id = $request['employee_id'];
             $days = floatval($request['duration']);
+            $req_type = $request['leave_type'] ?? 'Annual';
+            $deductsLeaveBalance = in_array(strtolower($req_type), ['annual', 'personal'], true);
 
-            $stmtEmp = $this->pdo->prepare("
-                SELECT remaining_leave_days
-                FROM employees
-                WHERE id = ?
-                FOR UPDATE
-            ");
+            if ($deductsLeaveBalance) {
+                $stmtEmp = $this->pdo->prepare("
+                    SELECT remaining_leave_days
+                    FROM employees
+                    WHERE id = ?
+                    FOR UPDATE
+                ");
 
-            $stmtEmp->execute([$emp_id]);
+                $stmtEmp->execute([$emp_id]);
 
-            $old_days = $stmtEmp->fetchColumn();
+                $old_days = $stmtEmp->fetchColumn();
 
-            if ($old_days === false) {
-                throw new Exception(
-                    'Không tìm thấy nhân viên.'
+                if ($old_days === false) {
+                    throw new Exception(
+                        'Không tìm thấy nhân viên.'
+                    );
+                }
+
+                $old_days = floatval($old_days);
+
+                if ($old_days < $days) {
+                    throw new Exception(
+                        'Nhân viên hiện không đủ ngày phép '
+                        . 'để thực hiện phê duyệt.'
+                    );
+                }
+
+                $new_days = $old_days - $days;
+
+                $stmtApprove = $this->pdo->prepare("
+                    UPDATE leave_requests
+                    SET status = 'Approved',
+                        approved_by = ?
+                    WHERE id = ?
+                ");
+
+                $stmtApprove->execute([
+                    $manager_id,
+                    $id
+                ]);
+
+                $stmtEmployee = $this->pdo->prepare("
+                    UPDATE employees
+                    SET remaining_leave_days = ?
+                    WHERE id = ?
+                ");
+
+                $stmtEmployee->execute([
+                    $new_days,
+                    $emp_id
+                ]);
+
+                $adjustmentModel =
+                    new EmployeeLeaveAdjustment($this->pdo);
+
+                $adjustmentModel->create(
+                    $emp_id,
+                    -$days,
+                    $old_days,
+                    $new_days,
+                    "Hệ thống trừ phép do duyệt đơn #{$id}",
+                    $manager_id
                 );
+
+                $this->pdo->commit();
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' =>
+                        "Đã phê duyệt và khấu trừ "
+                        . "{$days} ngày phép thành công."
+                ]);
+            } else {
+                $stmtApprove = $this->pdo->prepare("
+                    UPDATE leave_requests
+                    SET status = 'Approved',
+                        approved_by = ?
+                    WHERE id = ?
+                ");
+
+                $stmtApprove->execute([
+                    $manager_id,
+                    $id
+                ]);
+
+                $this->pdo->commit();
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' =>
+                        "Đã phê duyệt đơn nghỉ phép ({$req_type}) thành công. Không khấu trừ quỹ phép năm."
+                ]);
             }
-
-            $old_days = floatval($old_days);
-
-            if ($old_days < $days) {
-                throw new Exception(
-                    'Nhân viên hiện không đủ ngày phép '
-                    . 'để thực hiện phê duyệt.'
-                );
-            }
-
-            $new_days = $old_days - $days;
-
-            $stmtApprove = $this->pdo->prepare("
-                UPDATE leave_requests
-                SET status = 'Approved',
-                    approved_by = ?
-                WHERE id = ?
-            ");
-
-            $stmtApprove->execute([
-                $manager_id,
-                $id
-            ]);
-
-            $stmtEmployee = $this->pdo->prepare("
-                UPDATE employees
-                SET remaining_leave_days = ?
-                WHERE id = ?
-            ");
-
-            $stmtEmployee->execute([
-                $new_days,
-                $emp_id
-            ]);
-
-            $adjustmentModel =
-                new EmployeeLeaveAdjustment($this->pdo);
-
-            $adjustmentModel->create(
-                $emp_id,
-                -$days,
-                $old_days,
-                $new_days,
-                "Hệ thống trừ phép do duyệt đơn #{$id}",
-                $manager_id
-            );
-
-            $this->pdo->commit();
-
-            echo json_encode([
-                'status' => 'success',
-                'message' =>
-                    "Đã phê duyệt và khấu trừ "
-                    . "{$days} ngày phép thành công."
-            ]);
         } catch (Exception $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();

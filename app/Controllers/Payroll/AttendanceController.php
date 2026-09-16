@@ -326,17 +326,18 @@ class AttendanceController
                 );
             }
 
-            $data = json_decode(
-                file_get_contents('php://input'),
-                true
-            );
+            $rawInput = file_get_contents('php://input');
+            $data = !empty($rawInput) ? json_decode($rawInput, true) : [];
+            if (!is_array($data)) {
+                $data = [];
+            }
 
             $month = intval(
-                $data['month'] ?? date('m')
+                $data['month'] ?? $_POST['month'] ?? $_GET['month'] ?? date('m')
             );
 
             $year = intval(
-                $data['year'] ?? date('Y')
+                $data['year'] ?? $_POST['year'] ?? $_GET['year'] ?? date('Y')
             );
 
             if ($month < 1 || $month > 12) {

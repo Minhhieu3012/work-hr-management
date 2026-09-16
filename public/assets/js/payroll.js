@@ -18,6 +18,20 @@
     return await res.json();
   };
 
+  const leaveTypeLabels = {
+    annual: "Nghỉ phép năm",
+    sick: "Nghỉ ốm",
+    personal: "Việc cá nhân",
+    unpaid: "Nghỉ không lương",
+    maternity: "Nghỉ thai sản",
+  };
+
+  const formatLeaveType = (type) => {
+    if (!type) return "Nghỉ phép";
+    const key = String(type).toLowerCase();
+    return leaveTypeLabels[key] || type;
+  };
+
   // --- 2. UI HELPERS (ĐỒNG HỒ & TABS) ---
   function updateClock() {
     const clock = document.querySelector("[data-attendance-clock]");
@@ -120,7 +134,7 @@
                 .map(
                   (item) => `
                     <div class="leave-history-item">
-                        <div><h3>${item.leave_type === "annual" ? "Nghỉ phép năm" : "Việc riêng"}</h3><p>${item.start_date} (${item.duration} ngày)</p></div>
+                        <div><h3>${formatLeaveType(item.leave_type)}</h3><p>${item.start_date} (${item.duration} ngày)</p></div>
                         <span class="badge badge-${item.status === "Approved" ? "success" : "warning"}">${item.status}</span>
                     </div>
                 `,
@@ -159,7 +173,7 @@
                                 <h3>Đơn nghỉ phép: ${item.employee_name}</h3>
                                 <p>${item.reason}</p>
                                 <div class="approval-meta">
-                                    <span class="badge badge-primary">${item.leave_type || "Nghỉ phép"}</span>
+                                    <span class="badge badge-primary">${formatLeaveType(item.leave_type)}</span>
                                     <span class="badge badge-info">${item.duration} ngày</span>
                                     <span class="badge badge-success">Từ: ${item.start_date}</span>
                                 </div>

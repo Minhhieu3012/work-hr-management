@@ -73,16 +73,17 @@ require __DIR__ . '/../components/page-header.php';
                         <label class="form-label" for="leave_type">Loại nghỉ</label>
                         <select id="leave_type" class="form-select" name="leave_type" required>
                             <option value="">-- Chọn loại nghỉ --</option>
-                            <option value="annual">Nghỉ phép năm</option>
-                            <option value="sick">Nghỉ ốm</option>
-                            <option value="personal">Nghỉ việc cá nhân</option>
-                            <option value="half_day">Nghỉ nửa ngày</option>
+                            <option value="Annual">Nghỉ phép năm</option>
+                            <option value="Sick">Nghỉ ốm</option>
+                            <option value="Personal">Nghỉ việc cá nhân</option>
+                            <option value="Unpaid">Nghỉ không lương</option>
+                            <option value="Maternity">Nghỉ thai sản</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="leave_duration">Số ngày</label>
-                        <input id="leave_duration" class="form-control" type="number" min="0.5" step="0.5" name="duration" placeholder="VD: 1" required>
+                        <input id="leave_duration" class="form-control" type="number" min="0.5" step="0.5" name="duration" placeholder="VD: 1 hoặc 0.5 (nửa ngày)" required>
                     </div>
                 </div>
 

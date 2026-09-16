@@ -18,13 +18,6 @@ return [
     ['POST', '/api/auth/register-client','Auth\\AuthController@registerClient', null],
     ['GET',  '/api/auth/me',             'Auth\\AuthController@me', ['admin', 'manager', 'employee', 'client']],
     ['GET',  '/auth/logout',             'Auth\\LogoutController@index', null],
-    ['POST', '/api/auth/login-internal', 'Auth\\AuthController@loginInternal', null],
-    ['POST', '/api/auth/login-staff',    'Auth\\AuthController@loginStaff', null],
-    ['POST', '/api/auth/login-admin',    'Auth\\AuthController@loginAdmin', null],
-    ['POST', '/api/auth/login-client',   'Auth\\AuthController@loginClient', null],
-    ['POST', '/api/auth/register-client','Auth\\AuthController@registerClient', null],
-    ['POST', '/api/auth/register-manager', 'Auth\\ManagerRegistrationController@store', null],
-    ['GET',  '/api/auth/me',             'Auth\\AuthController@me', ['admin', 'manager', 'employee', 'client']],
     
     /**
      * DASHBOARD
@@ -156,7 +149,10 @@ return [
     ['POST',  '/api/leaves',             'Payroll\\LeaveController@store',      ['manager', 'employee']],
     ['PATCH', '/api/leaves/:id/approve', 'Payroll\\LeaveController@approve',    ['manager']],
 
-    ['GET',  '/api/attendance',          'Payroll\\AttendanceController@index',    ['admin', 'manager', 'employee']],
-    ['POST', '/api/attendance/checkin',  'Payroll\\AttendanceController@checkin',  ['manager', 'employee']],
-    ['POST', '/api/attendance/checkout', 'Payroll\\AttendanceController@checkout', ['manager', 'employee']],
+    ['GET',  '/api/attendance',                   'Payroll\\AttendanceController@index',                   ['admin', 'manager', 'employee']],
+    ['POST', '/api/attendance/checkin',           'Payroll\\AttendanceController@checkin',                 ['manager', 'employee']],
+    ['POST', '/api/attendance/checkout',          'Payroll\\AttendanceController@checkout',                ['manager', 'employee']],
+    ['POST', '/api/attendance/payroll',           'Payroll\\AttendanceController@calculateMonthlyPayroll', ['admin', 'manager']],
+    ['POST', '/api/payroll/calculate',            'Payroll\\AttendanceController@calculateMonthlyPayroll', ['admin', 'manager']],
+    ['GET',  '/api/attendance/payroll',           'Payroll\\AttendanceController@calculateMonthlyPayroll', ['admin', 'manager']],
 ];
