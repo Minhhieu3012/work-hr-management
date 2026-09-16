@@ -62,39 +62,36 @@ class DepartmentController {
 
     // API: DELETE /api/hrm/departments/{id}
     public function destroy($id) {
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
 
         if (!is_numeric($id) || $id <= 0) {
             http_response_code(400);
-            echo json_encode(['status' => 400, 'error' => 'ID phòng ban không hợp lệ']);
+            echo json_encode(['status' => 400, 'error' => 'ID phòng ban không hợp lệ'], JSON_UNESCAPED_UNICODE);
             exit;
         }
 
-        // --- BẮT ĐẦU: SOFT DELETE GUARD ---
-        // Truy xuất Data Flow: Controller -> Model -> CSDL (Đếm nhân viên)
-        $activeEmployeesCount = $this->departmentModel->countActiveEmployees($id);
+        try {
+            // ÁP DỤNG CHƯƠNG 2 & TRIGGER:
+            // Lệnh xóa mềm chạy trực tiếp xuống CSDL để Trigger trg_PreventDeptSoftDeleteIfActiveStaff kiểm tra.
+            // Nếu phòng ban còn nhân viên active, Trigger sẽ phát tín hiệu SIGNAL SQLSTATE '45000'.
+            $isDeleted = $this->departmentModel->softDelete($id);
 
-        // Chặn đứng hành động xóa nếu phòng ban đang có người
-        if ($activeEmployeesCount > 0) {
+            if ($isDeleted) {
+                http_response_code(200);
+                echo json_encode(['status' => 200, 'message' => 'Đã xóa (mềm) phòng ban thành công'], JSON_UNESCAPED_UNICODE);
+            } else {
+                http_response_code(404);
+                echo json_encode(['status' => 404, 'error' => 'Không tìm thấy phòng ban hoặc đã bị xóa'], JSON_UNESCAPED_UNICODE);
+            }
+        } catch (\PDOException $e) {
+            // Bắt lỗi trực tiếp từ Trigger MySQL
+            $errorMsg = $e->errorInfo[2] ?? $e->getMessage();
             http_response_code(400);
             echo json_encode([
-                'status' => 400, 
-                'error' => 'Từ chối xóa. Phòng ban này vẫn còn ' . $activeEmployeesCount . ' nhân viên đang hoạt động.',
-                'code' => 'DEPARTMENT_NOT_EMPTY'
-            ]);
-            exit;
-        }
-        // --- KẾT THÚC: SOFT DELETE GUARD ---
-
-        // Thực thi xóa mềm
-        $isDeleted = $this->departmentModel->softDelete($id);
-
-        if ($isDeleted) {
-            http_response_code(200);
-            echo json_encode(['status' => 200, 'message' => 'Đã xóa (mềm) phòng ban thành công']);
-        } else {
-            http_response_code(404);
-            echo json_encode(['status' => 404, 'error' => 'Không tìm thấy phòng ban hoặc đã bị xóa']);
+                'status' => 400,
+                'error' => $errorMsg,
+                'code' => 'TRIGGER_ERROR'
+            ], JSON_UNESCAPED_UNICODE);
         }
         exit;
     }

@@ -102,9 +102,14 @@ ob_start();
                     <p class="section-subtitle">Theo dõi các lần check-in/check-out gần nhất.</p>
                 </div>
 
-                <button class="btn btn-soft" type="button" data-payroll-action="mock-save">
-                    ⇩ Xuất bảng công
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-emerald" type="button" data-payroll-action="calculate-payroll">
+                        ⚡ Tính lương tháng (Stored Procedure)
+                    </button>
+                    <button class="btn btn-soft" type="button" data-payroll-action="mock-save">
+                        ⇩ Xuất bảng công
+                    </button>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -163,6 +168,75 @@ ob_start();
             </div>
         </aside>
     </section>
+
+    <!-- Modal Tính lương tháng bằng Stored Procedure (Chương 1) -->
+    <div id="payrollModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card" style="width: 100%; max-width: 780px; margin: 20px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);">
+            <div class="card-header dashboard-card-title-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div>
+                    <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>⚡ Tính lương tự động bằng Stored Procedure</span>
+                    </h2>
+                    <p class="section-subtitle" style="margin: 4px 0 0 0;">
+                        Gọi thủ tục <code>sp_CalculateMonthlyPayroll(p_month, p_year)</code> - Áp dụng Cursor duyệt nhân viên active.
+                    </p>
+                </div>
+                <button type="button" class="btn btn-soft" data-payroll-modal-close style="font-size: 16px; padding: 4px 12px; cursor: pointer;">✕</button>
+            </div>
+            <div class="card-body" style="padding: 24px;">
+                <div style="display: flex; gap: 16px; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; background: rgba(255,255,255,0.04); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div style="flex: 1; min-width: 120px;">
+                        <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500; color: #cbd5e1;">Tháng</label>
+                        <select id="payrollMonth" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                            <?php for ($m = 1; $m <= 12; $m++): ?>
+                                <option value="<?= $m ?>" <?= $m == (int)date('m') ? 'selected' : '' ?>>Tháng <?= $m ?></option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 120px;">
+                        <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500; color: #cbd5e1;">Năm</label>
+                        <select id="payrollYear" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: #1e293b; color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                            <?php $curY = (int)date('Y'); for ($y = $curY - 1; $y <= $curY + 1; $y++): ?>
+                                <option value="<?= $y ?>" <?= $y == $curY ? 'selected' : '' ?>><?= $y ?></option>
+                            <?php endfor; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="button" id="btnRunPayrollSP" class="btn btn-emerald" style="padding: 9px 20px; font-weight: 600;">
+                            ▶ Thực thi Stored Procedure
+                        </button>
+                    </div>
+                </div>
+
+                <div id="payrollLoading" style="display: none; text-align: center; padding: 30px; color: #94a3b8;">
+                    ⏳ Đang thực thi Stored Procedure và Cursor duyệt dữ liệu bảng chấm công...
+                </div>
+
+                <div id="payrollResultWrapper" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="font-size: 15px; margin: 0; color: #10b981;">
+                            ✓ Bảng lương tính toán tự động:
+                        </h3>
+                        <small style="color: #94a3b8;">Công chuẩn: 22 ngày/tháng</small>
+                    </div>
+                    <div class="table-responsive" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                        <table class="data-table" style="width: 100%; margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th>ID Nhân viên</th>
+                                    <th>Lương cơ bản</th>
+                                    <th>Ngày công thực tế</th>
+                                    <th style="text-align: right;">Lương thực nhận</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payrollTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <?php

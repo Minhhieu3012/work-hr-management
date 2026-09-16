@@ -327,7 +327,40 @@ class TaskAssignService
 
             $isReassign = $oldAssigneeId !== null;
 
-            // Nếu reassign thì báo cho người cũ
+
+            // BƯỚC 1: Cập nhật dữ liệu bảng tasks trước
+            $stmt = $conn->prepare("
+                UPDATE tasks
+                SET
+                    assignee_id = ?,
+                    assigner_id = ?,
+                    watcher_id = ?,
+                    status = 'Doing'
+                WHERE id = ?
+            ");
+
+            $stmt->execute([
+                $assigneeId,
+                $assignerId,
+                $newWatcherId,
+                $taskId
+            ]);
+
+            // BƯỚC 2: Ghi lịch sử hoạt động vào task_activity_logs
+            TaskActivityService::log(
+                $taskId,
+                $assignerId,
+                $isReassign
+                    ? TaskAction::REASSIGN
+                    : TaskAction::ASSIGN,
+                $isReassign
+                    ? "Reassigned task \"$title\""
+                    : "Assigned task \"$title\"",
+                $conn
+            );
+
+            // BƯỚC 3: Ghi các thông báo vào bảng notifications SAU CÙNG
+            // Nếu reassign thì thông báo cho người cũ
             if ($isReassign) {
                 $stmt = $conn->prepare("
                     INSERT INTO notifications
@@ -349,37 +382,6 @@ class TaskAssignService
                     "Task \"$title\" đã được chuyển cho người khác"
                 ]);
             }
-
-            // Cập nhật task
-            $stmt = $conn->prepare("
-                UPDATE tasks
-                SET
-                    assignee_id = ?,
-                    assigner_id = ?,
-                    watcher_id = ?,
-                    status = 'Doing'
-                WHERE id = ?
-            ");
-
-            $stmt->execute([
-                $assigneeId,
-                $assignerId,
-                $newWatcherId,
-                $taskId
-            ]);
-
-            // Ghi lịch sử
-            TaskActivityService::log(
-                $taskId,
-                $assignerId,
-                $isReassign
-                    ? TaskAction::REASSIGN
-                    : TaskAction::ASSIGN,
-                $isReassign
-                    ? "Reassigned task \"$title\""
-                    : "Assigned task \"$title\"",
-                $conn
-            );
 
             // Thông báo assignee mới
             $stmt = $conn->prepare("

@@ -447,15 +447,9 @@ class EmployeeController {
             }
 
             // Issue #23
-            
+            // Lấy mức lương hợp đồng truyền xuống Stored Procedure sp_OnboardNewEmployee
+            // ÁP DỤNG CHƯƠNG 2: Nếu salary <= 0, Stored Procedure sẽ tự phát hiện và kích hoạt ROLLBACK
             $contractSalary = (float)($input['salary'] ?? $input['contract_salary'] ?? 0);
-
-            if ($contractSalary <= 0) {
-                $this->json([
-                    'status' => 'error',
-                    'message' => 'Vui lòng nhập mức lương hợp đồng (salary) lớn hơn 0 khi tiếp nhận nhân sự mới.'
-                ], 422);
-            }
 
             $result = $this->employeeModel->createWithInitialContract([
                 'department_id' => $input['department_id'] ?? null,

@@ -289,6 +289,11 @@
     const payrollBtn = e.target.closest("[data-payroll-action]");
     if (payrollBtn) {
       const action = payrollBtn.dataset.payrollAction;
+      if (action === "calculate-payroll") {
+        const modal = document.getElementById("payrollModal");
+        if (modal) modal.style.display = "flex";
+      }
+
       if (action === "check-in" || action === "check-out") {
         const endpoint =
           action === "check-in"
@@ -303,6 +308,58 @@
         }
       }
     }
+
+    // Đóng Modal Tính lương
+    if (e.target.closest("[data-payroll-modal-close]") || e.target.id === "payrollModal") {
+      const modal = document.getElementById("payrollModal");
+      if (modal) modal.style.display = "none";
+    }
+
+    // Thực thi Stored Procedure sp_CalculateMonthlyPayroll
+    if (e.target.id === "btnRunPayrollSP" || e.target.closest("#btnRunPayrollSP")) {
+      const month = parseInt(document.getElementById("payrollMonth")?.value || (new Date().getMonth() + 1), 10);
+      const year = parseInt(document.getElementById("payrollYear")?.value || new Date().getFullYear(), 10);
+      const loading = document.getElementById("payrollLoading");
+      const resultWrapper = document.getElementById("payrollResultWrapper");
+      const tableBody = document.getElementById("payrollTableBody");
+
+      if (loading) loading.style.display = "block";
+      if (resultWrapper) resultWrapper.style.display = "none";
+
+      try {
+        const res = await callApi("/payroll/calculate", "POST", { month, year });
+        if (res.status === "success") {
+          if (window.CAHToast) CAHToast.success("Thành công", res.message);
+          if (tableBody) {
+            const rows = Array.isArray(res.data) ? res.data : [];
+            const formatCurrency = (amount) => {
+              return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+            };
+
+            tableBody.innerHTML = rows.length === 0
+              ? '<tr><td colspan="4" style="text-align: center; padding: 24px; color: #94a3b8;">Không có nhân viên active nào trong kỳ tính lương này.</td></tr>'
+              : rows.map(r => `
+                  <tr>
+                    <td><strong>#NV${r.employee_id}</strong></td>
+                    <td>${formatCurrency(r.base_salary)}</td>
+                    <td><span class="badge badge-success">${r.worked_days} / 22 ngày</span></td>
+                    <td style="text-align: right; color: #10b981; font-weight: 700; font-size: 15px;">
+                      ${formatCurrency(r.final_salary)}
+                    </td>
+                  </tr>
+                `).join("");
+          }
+          if (resultWrapper) resultWrapper.style.display = "block";
+        } else {
+          if (window.CAHToast) CAHToast.error("Lỗi tính lương", res.message || "Không thể thực thi Stored Procedure.");
+        }
+      } catch (err) {
+        if (window.CAHToast) CAHToast.error("Lỗi", "Lỗi kết nối máy chủ khi tính lương.");
+      } finally {
+        if (loading) loading.style.display = "none";
+      }
+    }
+
     const tabBtn = e.target.closest("[data-approval-tab]");
     if (tabBtn) handleTabSwitch(tabBtn);
   });
