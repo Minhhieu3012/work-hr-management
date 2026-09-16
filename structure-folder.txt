@@ -137,17 +137,44 @@ work-hr-management
 │   ├── Router.php
 │   └── Security.php
 ├── database
+│   ├── functions
+│   │   ├── fn_calculate_income_tax.sql
+│   │   ├── fn_get_employee_seniority.sql
+│   │   └── fn_is_valid_date_range.sql
 │   ├── migrations
 │   │   ├── 002_hrm_schema.sql
 │   │   ├── 003_employee_documents.sql
 │   │   ├── 004_operation_flow_schema.sql
 │   │   └── 005_programmability_objects.sql
+│   ├── procedures
+│   │   ├── demo_error
+│   │   │   ├── sp_demo_deadlock_assignment.sql
+│   │   │   ├── sp_demo_dirty_read_salary.sql
+│   │   │   ├── sp_demo_lost_update_leave.sql
+│   │   │   ├── sp_demo_non_repeatable_read_profile.sql
+│   │   │   └── sp_demo_phantom_task.sql
+│   │   ├── sp_calculate_monthly_payroll.sql
+│   │   ├── sp_monthly_leave_accrual.sql
+│   │   ├── sp_onboard_new_employee.sql
+│   │   └── sp_terminate_employee.sql
 │   ├── schema.sql
-│   └── seeders
-│       ├── 002_hrm_seed_data.sql
-│       ├── 003_auth_task_test_seed.sql
-│       ├── 004_operation_flow_seed.sql
-│       └── 005_test_data.sql
+│   ├── seed_data.sql
+│   ├── seeders
+│   │   ├── 002_hrm_seed_data.sql
+│   │   ├── 003_auth_task_test_seed.sql
+│   │   ├── 004_operation_flow_seed.sql
+│   │   ├── 005_test_data.sql
+│   │   └── 006_create_account_role.sql
+│   ├── triggers
+│   │   ├── trg_check_leave_days.sql
+│   │   ├── trg_prevent_dept_soft_delete.sql
+│   │   ├── trg_prevent_pos_soft_delete.sql
+│   │   ├── trg_task_status_history.sql
+│   │   └── trg_validate_contract_dates.sql
+│   └── views
+│       ├── vw_employee_profiles.sql
+│       ├── vw_leave_summary.sql
+│       └── vw_project_task_progress.sql
 ├── public
 │   ├── .htaccess
 │   ├── assets

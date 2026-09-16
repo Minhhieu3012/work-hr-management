@@ -17,7 +17,7 @@ CREATE TABLE departments (
     deleted_at TIMESTAMP NULL DEFAULT NULL,
     
     INDEX idx_departments_deleted_at (deleted_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; -- Chương 2, Chương 3
 
 -- 2. Positions
 CREATE TABLE positions (
@@ -53,7 +53,7 @@ CREATE TABLE employees (
     status ENUM('active', 'inactive', 'resigned', 'suspended') NOT NULL DEFAULT 'active',
     hire_date DATE NOT NULL, 
     resigned_date DATE NULL DEFAULT NULL,
-    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking 
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking (Chương 3)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL DEFAULT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE projects (
     manager_id INT NULL,  
     client_id INT NULL,  
     status ENUM('Active', 'Completed', 'Archived') DEFAULT 'Active',
-    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking 
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking (Chương 3)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (manager_id) REFERENCES employees(id) ON DELETE SET NULL,
@@ -151,7 +151,7 @@ CREATE TABLE tasks (
     assigner_id INT, 
     assignee_id INT, 
     watcher_id INT,
-    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Opimistic Locking 
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Opimistic Locking (Chương 3)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
@@ -231,7 +231,7 @@ CREATE TABLE leave_requests (
     duration DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     reason TEXT,
     status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
-    version INT UNSIGNED NOT NULL DEFAULT 1,
+    version INT UNSIGNED NOT NULL DEFAULT 1, -- Hỗ trợ Optimistic Locking (Chương 3)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
