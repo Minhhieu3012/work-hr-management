@@ -1,14 +1,3 @@
--- =========================================================
--- Seeder 004 - Operation Flow Seed (Fixed Version)
---
--- Safe version:
--- - Không hardcode department_id / position_id.
--- - Không hardcode employee id.
--- - Tự lấy ID thật bằng name/email.
--- - Tương thích chuẩn xác với schema.sql (Bỏ project_members & các trường Client Portal)
--- Password test: 123456
--- =========================================================
-
 USE work_hr_management;
 
 SET FOREIGN_KEY_CHECKS = 0;

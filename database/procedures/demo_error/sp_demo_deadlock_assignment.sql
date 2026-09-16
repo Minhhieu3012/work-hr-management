@@ -1,9 +1,3 @@
--- ====================================================================
--- Object: Demo Deadlock & Cách khắc phục
--- Nghiệp vụ: Cập nhật chéo 2 Task công việc
--- Áp dụng: Chương 4 (Đồ thị chờ chu trình Slide 2 & Giao thức thứ tự dữ liệu Slide 5)
--- ====================================================================
-
 DROP PROCEDURE IF EXISTS sp_Demo_Deadlock_Tx1;
 DROP PROCEDURE IF EXISTS sp_Demo_Deadlock_Tx2;
 DROP PROCEDURE IF EXISTS sp_Demo_Deadlock_Fix;

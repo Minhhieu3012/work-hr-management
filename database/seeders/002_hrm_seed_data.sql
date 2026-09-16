@@ -1,8 +1,3 @@
--- =========================================================================
--- FILE SEED DATA MODULE HRM (CHUẨN BỊ CHO 30 TEST CASES)
--- Lưu ý: Chạy file này sau khi đã chạy 002_hrm_schema.sql
--- =========================================================================
-
 USE work_hr_management;
 
 -- Bỏ qua kiểm tra khóa ngoại tạm thời để truncate/insert an toàn

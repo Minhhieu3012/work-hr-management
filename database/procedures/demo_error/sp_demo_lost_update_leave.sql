@@ -1,9 +1,3 @@
--- ====================================================================
--- Object: Demo Lost Update & Cách khắc phục
--- Nghiệp vụ: Duyệt ngày nghỉ phép của nhân viên
--- Áp dụng: Chương 3_1 (Slide 14, 15) & Chương 3_2 (Khóa độc quyền X)
--- ====================================================================
-
 DROP PROCEDURE IF EXISTS sp_Demo_LostUpdate_Unsafe;
 DROP PROCEDURE IF EXISTS sp_Demo_LostUpdate_Fix;
 

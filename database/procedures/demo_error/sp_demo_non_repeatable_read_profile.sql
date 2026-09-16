@@ -1,9 +1,3 @@
--- ====================================================================
--- Object: Demo Non-repeatable Read & Cách khắc phục
--- Nghiệp vụ: Đọc hồ sơ nhân viên 2 lần trong 1 phiên làm việc
--- Áp dụng: Chương 3_1 (Slide 20-22) & Chương 3_3 (Đa phiên bản MVCC)
--- ====================================================================
-
 DROP PROCEDURE IF EXISTS sp_Demo_NonRepeatable_Reader_Unsafe;
 DROP PROCEDURE IF EXISTS sp_Demo_NonRepeatable_Reader_Fix;
 DROP PROCEDURE IF EXISTS sp_Demo_NonRepeatable_Modifier;

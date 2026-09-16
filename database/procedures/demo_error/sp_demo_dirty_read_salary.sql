@@ -1,9 +1,3 @@
--- ====================================================================
--- Object: Demo Dirty Read & Cách khắc phục
--- Nghiệp vụ: Điều chỉnh lương trong hợp đồng lao động
--- Áp dụng: Chương 2 (Trạng thái Aborted - Slide 12) & Chương 3_1 (Slide 17-19)
--- ====================================================================
-
 DROP PROCEDURE IF EXISTS sp_Demo_DirtyRead_Writer;
 DROP PROCEDURE IF EXISTS sp_Demo_DirtyRead_Reader_Unsafe;
 DROP PROCEDURE IF EXISTS sp_Demo_DirtyRead_Reader_Fix;

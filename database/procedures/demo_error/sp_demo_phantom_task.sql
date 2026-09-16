@@ -1,9 +1,3 @@
--- ====================================================================
--- Object: Demo Phantom Read & Cách khắc phục
--- Nghiệp vụ: Thống kê số lượng Task trong dự án
--- Áp dụng: Chương 3_1 (Hiện tượng Phantom Slide 23) & Chương 3_3 (Next-Key Lock / SERIALIZABLE)
--- ====================================================================
-
 DROP PROCEDURE IF EXISTS sp_Demo_Phantom_Inserter;
 DROP PROCEDURE IF EXISTS sp_Demo_Phantom_Reader_Unsafe;
 DROP PROCEDURE IF EXISTS sp_Demo_Phantom_Reader_Fix;
