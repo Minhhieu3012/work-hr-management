@@ -73,6 +73,7 @@ CREATE TABLE employees (
     status ENUM('active', 'inactive', 'resigned', 'suspended') NOT NULL DEFAULT 'active',
     hire_date DATE NOT NULL, 
     resigned_date DATE NULL DEFAULT NULL,
+    version INT UNSIGNED NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL DEFAULT NULL,

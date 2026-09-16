@@ -172,6 +172,54 @@ BEGIN
     COMMIT;
 END$$
 
+-- SP 4: Tính lương hàng tháng (Sử dụng Cursor)
+CREATE PROCEDURE sp_CalculateMonthlyPayroll(IN p_month INT, IN p_year INT)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_emp_id INT;
+    DECLARE v_base_salary DECIMAL(15,2);
+    DECLARE v_total_present INT;
+    DECLARE v_calculated_salary DECIMAL(15,2);
+    
+    -- Khai báo Cursor để duyệt qua các nhân viên đang active (Kiến thức Chương 1)
+    DECLARE cur_employees CURSOR FOR 
+        SELECT e.id, c.salary 
+        FROM employees e
+        JOIN employee_contracts c ON e.id = c.employee_id
+        WHERE e.status = 'active' AND c.status = 'active';
+        
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    OPEN cur_employees;
+    
+    read_loop: LOOP
+        FETCH cur_employees INTO v_emp_id, v_base_salary;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Tính số ngày đi làm trong tháng
+        SELECT COUNT(id) INTO v_total_present
+        FROM attendances
+        WHERE employee_id = v_emp_id 
+          AND MONTH(work_date) = p_month 
+          AND YEAR(work_date) = p_year
+          AND status = 'Present';
+          
+        -- Giả sử công chuẩn là 22 ngày
+        SET v_calculated_salary = (v_base_salary / 22) * v_total_present;
+        
+        -- Có thể tính thêm thuế bằng Function đã tạo: fn_CalculateIncomeTax(v_calculated_salary)
+        
+        -- Trả về kết quả hoặc Insert vào bảng Payroll (tùy thiết kế)
+        SELECT v_emp_id AS employee_id, v_base_salary AS base_salary, 
+               v_total_present AS worked_days, v_calculated_salary AS final_salary;
+               
+    END LOOP;
+    
+    CLOSE cur_employees;
+END$$
+
 DELIMITER ;
 
 -- =====================================
