@@ -496,7 +496,7 @@ class Employee {
     public function createWithInitialContract(array $employeeData, array $contractData): array {
     $prepared = $this->prepareCreateData($employeeData);
     
-    // GỌI STORED PROCEDURE CỦA CHƯƠNG 1
+    // Gọi Stored Procedure tạo nhân viên kèm hợp đồng
     return Database::transaction(function (PDO $pdo) use ($prepared, $contractData) {
         $stmt = $pdo->prepare("
             CALL sp_OnboardNewEmployee(
@@ -705,7 +705,7 @@ class Employee {
 
     /**
      * Issue #25: Cập nhật phòng ban và tái ký hợp đồng
-     * Áp dụng Optimistic Locking (Chương 3) chống Lost Update.
+     * Áp dụng Optimistic Locking chống Lost Update.
      * 
      * @param int $employeeId ID nhân viên
      * @param int $newDepartmentId ID phòng ban mới

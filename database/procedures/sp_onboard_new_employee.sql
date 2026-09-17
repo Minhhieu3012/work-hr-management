@@ -1,11 +1,3 @@
--- =======================================================
--- Object: Stored Procedure sp_OnboardNewEmployee
--- Mô tả: Tiếp nhận nhân sự mới (Tạo Profile + Tạo Hợp đồng thử việc)
--- Áp dụng: 
---   - Chương 2 (Slide 7, 8, 14): Tính nguyên tố ACID, START TRANSACTION, COMMIT, ROLLBACK
---   - Chương 2 (Slide 13): Bắt lỗi Exception chuyển trạng thái giao tác Failed -> Aborted
--- =======================================================
-
 DROP PROCEDURE IF EXISTS sp_OnboardNewEmployee;
 
 DELIMITER $$
@@ -23,11 +15,11 @@ CREATE PROCEDURE sp_OnboardNewEmployee(
 BEGIN
     DECLARE v_emp_id INT;
     
-    -- ÁP DỤNG CHƯƠNG 2: Xử lý ngoại lệ để đảm bảo Tính nguyên tố (Atomicity)
+    -- Xử lý ngoại lệ để đảm bảo Tính nguyên tố (Atomicity)
     -- Nếu trùng lặp Unique Key (mã lỗi 1062 - ví dụ trùng email hoặc mã NV)
     DECLARE EXIT HANDLER FOR 1062
     BEGIN
-        ROLLBACK; -- Quay lui, hủy toàn bộ thao tác trước đó (Chương 2 Slide 14)
+        ROLLBACK; -- Quay lui, hủy toàn bộ thao tác trước đó
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email hoặc Mã NV đã tồn tại!';
     END;
     
@@ -43,7 +35,7 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lương thử việc phải lớn hơn 0!';
     END IF;
     
-    -- BẮT ĐẦU GIAO TÁC (Chương 2 Slide 14)
+    -- Bắt đầu giao tác
     START TRANSACTION;
     
     -- Bước 1: Tạo nhân viên
@@ -56,7 +48,7 @@ BEGIN
     INSERT INTO employee_contracts (employee_id, contract_code, contract_type, start_date, salary, status)
     VALUES (v_emp_id, CONCAT('HD-', p_emp_code), 'probation', p_hire_date, p_salary, 'active');
     
-    -- CHỐT GIAO TÁC THÀNH CÔNG (Chương 2 Slide 14)
+    -- Chốt giao tác thành công
     COMMIT;
 END$$
 

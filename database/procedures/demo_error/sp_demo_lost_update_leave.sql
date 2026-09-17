@@ -41,7 +41,7 @@ BEGIN
     
     START TRANSACTION;
     
-    -- ÁP DỤNG CHƯƠNG 3_2: Xin cấp khóa Write_Lock(X) ngay khi đọc
+    -- Xin cấp khóa Write_Lock(X) ngay khi đọc
     -- Trong MySQL InnoDB, cú pháp chính là SELECT ... FOR UPDATE
     SELECT remaining_leave_days INTO v_current_leave
     FROM employees
@@ -54,7 +54,7 @@ BEGIN
     SET remaining_leave_days = v_current_leave - p_deduct_days
     WHERE id = p_emp_id;
     
-    COMMIT; -- Giải phóng khóa (Shrinking Phase của 2PL - Chương 3_2 Slide 14)
+    COMMIT; -- Giải phóng khóa (Shrinking Phase của 2PL)
 END$$
 
 DELIMITER ;

@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Stored Procedure sp_CalculateMonthlyPayroll
--- Mô tả: Tính lương hàng tháng theo số ngày công thực tế bằng Cursor
--- Áp dụng: Chương 1 (Toàn bộ chu trình CURSOR từ Slide 24 đến 27)
--- =======================================================
-
 DROP PROCEDURE IF EXISTS sp_CalculateMonthlyPayroll;
 
 DELIMITER $$
@@ -17,22 +11,22 @@ BEGIN
     DECLARE v_total_present INT;
     DECLARE v_calculated_salary DECIMAL(15,2);
     
-    -- ÁP DỤNG CHƯƠNG 1 (Slide 25): Khai báo Cursor
+    -- Khai báo Cursor
     DECLARE cur_employees CURSOR FOR 
         SELECT e.id, c.salary 
         FROM employees e
         JOIN employee_contracts c ON e.id = c.employee_id
         WHERE e.status = 'active' AND c.status = 'active';
         
-    -- Xử lý ngoại lệ khi Cursor duyệt hết dòng (Tương đương @@fetch_status <> 0 ở Slide 26)
+    -- Xử lý ngoại lệ khi Cursor duyệt hết dòng
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     
-    -- ÁP DỤNG CHƯƠNG 1 (Slide 26): Mở Cursor
+    -- Mở Cursor
     OPEN cur_employees;
     
     -- Bắt đầu vòng lặp duyệt từng dòng dữ liệu
     read_loop: LOOP
-        -- ÁP DỤNG CHƯƠNG 1 (Slide 26): Đọc dữ liệu từ Cursor vào biến
+        -- Đọc dữ liệu từ Cursor vào biến
         FETCH cur_employees INTO v_emp_id, v_base_salary;
         
         IF done THEN
@@ -58,7 +52,7 @@ BEGIN
                
     END LOOP;
     
-    -- ÁP DỤNG CHƯƠNG 1 (Slide 26): Đóng Cursor để giải phóng tài nguyên
+    -- Đóng Cursor để giải phóng tài nguyên
     CLOSE cur_employees;
 END$$
 

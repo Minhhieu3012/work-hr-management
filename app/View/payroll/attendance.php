@@ -169,7 +169,7 @@ ob_start();
         </aside>
     </section>
 
-    <!-- Modal Tính lương tháng bằng Stored Procedure (Chương 1) -->
+    <!-- Modal Tính lương tháng bằng Stored Procedure -->
     <div id="payrollModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card" style="width: 100%; max-width: 780px; margin: 20px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);">
             <div class="card-header dashboard-card-title-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">

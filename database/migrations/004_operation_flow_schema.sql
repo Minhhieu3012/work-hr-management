@@ -1,17 +1,3 @@
--- =========================================================
--- Work & HR Management
--- Migration 004 - Operation Flow Schema
---
--- Mục tiêu:
--- 1. Project có nhiều Employee làm thành viên.
--- 2. Task có thể public cho Client xem.
--- 3. Task Review có người duyệt, thời gian duyệt, lý do reject.
--- 4. Comment có visibility để tách nội bộ / client.
---
--- Không tạo bảng lương.
--- Không xoá dữ liệu cũ.
--- =========================================================
-
 USE work_hr_management;
 
 -- =========================================================

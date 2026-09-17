@@ -1,9 +1,3 @@
--- =======================================================
--- Object: View vw_LeaveSummary
--- Mô tả: Thống kê số lượng đơn và tổng ngày nghỉ đã duyệt theo nhân viên
--- Áp dụng: Chương 1 (Hàm tổng hợp COUNT, SUM & hàm xử lý ngày DATEDIFF)
--- =======================================================
-
 CREATE OR REPLACE VIEW vw_LeaveSummary AS 
 SELECT 
     employee_id, 

@@ -34,10 +34,10 @@ BEGIN
     COMMIT;
 END$$
 
--- 3. Giao tác đọc chuẩn (FIX): Dùng REPEATABLE READ (Cơ chế MVCC - Chương 3_3)
+-- 3. Giao tác đọc chuẩn (FIX): Dùng REPEATABLE READ (Cơ chế MVCC)
 CREATE PROCEDURE sp_Demo_NonRepeatable_Reader_Fix(IN p_emp_id INT)
 BEGIN
-    -- ÁP DỤNG CHƯƠNG 3_3: Sử dụng Snapshot Read của cơ chế Đa phiên bản (MVTO)
+    -- Sử dụng Snapshot Read của cơ chế Đa phiên bản (MVTO)
     SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
     START TRANSACTION;
     

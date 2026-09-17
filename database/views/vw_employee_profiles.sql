@@ -1,9 +1,3 @@
--- =======================================================
--- Object: View vw_EmployeeProfiles
--- Mô tả: Tổng hợp hồ sơ nhân sự kèm thông tin phòng ban, vị trí
--- Áp dụng: Chương 1 (Cấu trúc rẽ nhánh Simple CASE & Soft-delete)
--- =======================================================
-
 CREATE OR REPLACE VIEW vw_EmployeeProfiles AS 
 SELECT
     e.id, 
@@ -13,7 +7,7 @@ SELECT
     e.phone, 
     d.name AS department_name, 
     p.name AS position_name, 
-    -- ÁP DỤNG CHƯƠNG 1 (Slide 15): Cấu trúc rẽ nhánh Simple CASE để chuyển đổi mã trạng thái
+    -- Cấu trúc rẽ nhánh Simple CASE để chuyển đổi mã trạng thái
     CASE e.status
         WHEN 'active' THEN 'Dang lam viec'
         WHEN 'inactive' THEN 'Tam Khoa'

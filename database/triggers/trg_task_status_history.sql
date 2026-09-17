@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Trigger trg_TaskStatusHistory
--- Thời điểm: AFTER UPDATE trên bảng tasks
--- Áp dụng: Chương 1 (Ghi log Audit Trail tự động)
--- =======================================================
-
 DROP TRIGGER IF EXISTS trg_TaskStatusHistory;
 
 DELIMITER $$

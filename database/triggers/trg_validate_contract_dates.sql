@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Trigger trg_ValidateContractDates_Insert
--- Thời điểm: BEFORE INSERT trên bảng employee_contracts
--- Áp dụng: Chương 1 & Chương 2 (Bảo vệ tính nhất quán logic ngày tháng)
--- =======================================================
-
 DROP TRIGGER IF EXISTS trg_ValidateContractDates_Insert;
 
 DELIMITER $$

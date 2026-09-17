@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Function fn_IsValidDateRange
--- Mô tả: Kiểm tra tính hợp lệ logic của chuỗi thời gian (Ngày kết thúc >= Ngày bắt đầu)
--- Áp dụng: Chương 1 (Cấu trúc điều khiển & Toán tử so sánh - Slide 9, 10)
--- =======================================================
-
 DROP FUNCTION IF EXISTS fn_IsValidDateRange;
 
 DELIMITER $$ 

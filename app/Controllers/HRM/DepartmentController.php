@@ -71,7 +71,6 @@ class DepartmentController {
         }
 
         try {
-            // ÁP DỤNG CHƯƠNG 2 & TRIGGER:
             // Lệnh xóa mềm chạy trực tiếp xuống CSDL để Trigger trg_PreventDeptSoftDeleteIfActiveStaff kiểm tra.
             // Nếu phòng ban còn nhân viên active, Trigger sẽ phát tín hiệu SIGNAL SQLSTATE '45000'.
             $isDeleted = $this->departmentModel->softDelete($id);

@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Trigger trg_CheckLeaveDays
--- Thời điểm: BEFORE UPDATE trên bảng employees
--- Áp dụng: Chương 2 (Tính nhất quán Consistency - Chặn dữ liệu vô lý)
--- =======================================================
-
 DROP TRIGGER IF EXISTS trg_CheckLeaveDays;
 
 DELIMITER $$

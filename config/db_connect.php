@@ -1,6 +1,6 @@
 <?php
 /**
- * File kết nối PDO (giữ lại cho Chương 2 & Chương 4 - Issue #20).
+ * File kết nối PDO (Issue #20).
  * Không tự tạo PDO riêng để tránh có 2 connection song song trong app —
  * mọi kết nối đều lấy từ Core\Database (singleton), đảm bảo toàn bộ
  * ứng dụng luôn dùng chung 1 transaction context.

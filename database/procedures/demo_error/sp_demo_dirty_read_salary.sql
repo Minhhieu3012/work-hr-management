@@ -21,7 +21,7 @@ BEGIN
     -- Giữ giao tác chưa chốt trong vài giây
     DO SLEEP(p_hold_seconds);
     
-    -- ÁP DỤNG CHƯƠNG 2: Quay lui giao tác, hủy toàn bộ thay đổi
+    -- Quay lui giao tác, hủy toàn bộ thay đổi
     ROLLBACK;
 END$$
 
@@ -44,7 +44,7 @@ END$$
 -- 3. Giao tác đọc an toàn (FIX): Thiết lập mức cô lập chuẩn READ COMMITTED
 CREATE PROCEDURE sp_Demo_DirtyRead_Reader_Fix(IN p_contract_id INT)
 BEGIN
-    -- ÁP DỤNG CHƯƠNG 2 & 3: Chỉ đọc dữ liệu từ các giao tác đã COMMIT thành công
+    -- Chỉ đọc dữ liệu từ các giao tác đã COMMIT thành công
     SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
     
     START TRANSACTION;

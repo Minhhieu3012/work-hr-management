@@ -38,7 +38,7 @@ BEGIN
     COMMIT;
 END$$
 
--- 3. THỦ TỤC KHẮC PHỤC (FIX): Áp dụng Giao thức sắp xếp thứ tự dữ liệu (Chương 4 Slide 5)
+-- 3. THỦ TỤC KHẮC PHỤC (FIX): Áp dụng Giao thức sắp xếp thứ tự dữ liệu
 -- Dù người dùng truyền id nào trước, ta luôn ép hệ thống khóa ID NHỎ TRƯỚC, ID LỚN SAU!
 CREATE PROCEDURE sp_Demo_Deadlock_Fix(
     IN p_task_1 INT, 
@@ -49,7 +49,7 @@ BEGIN
     DECLARE v_first_id INT;
     DECLARE v_second_id INT;
     
-    -- ÁP DỤNG CHƯƠNG 4 (Slide 5): Ordering All the Items Protocol
+    -- Ordering All the Items Protocol
     IF p_task_1 < p_task_2 THEN
         SET v_first_id = p_task_1;
         SET v_second_id = p_task_2;

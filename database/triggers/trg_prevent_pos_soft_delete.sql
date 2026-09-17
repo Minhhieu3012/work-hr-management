@@ -1,9 +1,3 @@
--- =======================================================
--- Object: Trigger trg_PreventPosSoftDeleteIfActiveStaff
--- Thời điểm: BEFORE UPDATE trên bảng positions
--- Áp dụng: Tương tự phòng ban, bảo vệ toàn vẹn cho vị trí chức vụ
--- =======================================================
-
 DROP TRIGGER IF EXISTS trg_PreventPosSoftDeleteIfActiveStaff;
 
 DELIMITER $$
