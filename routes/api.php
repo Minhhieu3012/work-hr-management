@@ -43,9 +43,10 @@ return [
     /**
      * HRM - ORGANIZATION
      */
-    ['GET',  '/api/organization/data',            'OrganizationController@getOrgData',       ['admin', 'manager', 'employee']],
-    ['POST', '/api/organization/store',           'OrganizationController@storeDepartment',  ['admin']],
-    ['POST', '/api/organization/positions/store', 'OrganizationController@storePosition',    ['admin']],
+    ['GET',    '/api/organization/data',             'OrganizationController@getOrgData',          ['admin', 'manager', 'employee']],
+    ['POST',   '/api/organization/store',            'OrganizationController@storeDepartment',     ['admin']],
+    ['DELETE', '/api/organization/departments/:id',  'OrganizationController@deleteDepartment',    ['admin']],
+    ['POST',   '/api/organization/positions/store',  'OrganizationController@storePosition',       ['admin']],
 
     /**
      * HRM - EMPLOYEES

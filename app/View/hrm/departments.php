@@ -105,13 +105,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => node.style.border = '1px solid #f0f0f0', 1000);
                 });
                 break;
+            case 'delete-department':
+                const deptName = btn ? btn.getAttribute('data-name') : 'này';
+                if (!confirm(`Bạn có chắc chắn muốn xóa phòng ban "${deptName}" không?`)) return;
+                fetch(baseUrl + '/public/api/organization/departments/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('✅ ' + data.message);
+                        location.reload();
+                    } else {
+                        alert('❌ THÔNG BÁO TỪ TRIGGER CSDL:\n\n' + data.message);
+                    }
+                })
+                .catch(err => {
+                    alert('Lỗi kết nối máy chủ.');
+                });
+                break;
             case 'edit-employee': window.location.href = `${viewUrl}/edit-employee.php?id=${id}`; break;
         }
     };
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action]');
-        if (btn) handleAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'));
+        if (btn) handleAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'), btn);
     });
 
     // Gọi API lấy dữ liệu thực
@@ -123,15 +143,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (res.status === 'success') {
             const { departments, positions, employees } = res.data;
 
-            // Render Departments
+            // Render Departments (Có nút Xóa để demo Trigger trg_prevent_dept_soft_delete)
             const deptBox = document.getElementById('js-dept-container');
             deptBox.innerHTML = departments.length ? departments.map(d => `
-                <div class="org-node">
-                    <div class="org-node-icon">🏢</div>
-                    <div class="org-node-text">
-                        <strong>${d.name}</strong>
-                        <small>${d.employee_count} Thành viên • ${d.description || 'Phòng ban'}</small>
+                <div class="org-node" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="org-node-icon">🏢</div>
+                        <div class="org-node-text">
+                            <strong>${d.name}</strong>
+                            <small>${d.employee_count} Thành viên • ${d.description || 'Phòng ban'}</small>
+                        </div>
                     </div>
+                    <button class="btn btn-sm" type="button" data-action="delete-department" data-id="${d.id}" data-name="${d.name}" style="color: #ef4444; border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                        🗑 Xóa
+                    </button>
                 </div>
             `).join('') : '<p>Chưa có dữ liệu.</p>';
 
