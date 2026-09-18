@@ -80,7 +80,15 @@ git clone https://github.com/Minhhieu3012/work-hr-management.git
 cd work-hr-management
 ```
 
-### 2. Environment Setup
+### 2. Dependencies & Environment Setup
+
+1. **Install Composer Dependencies:**
+
+```bash
+composer install
+```
+
+2. **Setup Environment File:**
 
 ```bash
 cp .env.example .env
@@ -113,25 +121,40 @@ database/seeders/004_operation_flow_seed.sql
 database/seeders/005_test_data.sql
 ```
 
+---
+
 ### 4. Run the Application
 
-### Option 1: Local Web Server (XAMPP)
+#### Option 1: PHP Built-in Server (Recommended for Development)
 
-Point your Virtual Host directory directly to the `public/` folder so `public/index.php` serves as the single entry point.
+Dự án tích hợp sẵn `router.php` giúp tự động điều phối routes, views và static assets (CSS, JS, hình ảnh), cho phép đặt repository ở **bất kỳ thư mục hoặc ổ đĩa nào** (không bắt buộc phải nằm trong `C:\xampp\htdocs`).
 
-- **Base URL:** `http://localhost/work-hr-management/public/`
-- **Admin Portal:** `http://localhost/work-hr-management/public/admin/login`
-- **Staff Portal:** `http://localhost/work-hr-management/public/staff/login`
-- **Client Portal:** `http://localhost/work-hr-management/public/client/login`
+Chạy lệnh:
+
+```bash
+composer start
+# Hoặc:
+php -S localhost:8000 router.php
+```
+
+Truy cập các cổng portal trên trình duyệt:
+
+- **Trang chủ:** `http://localhost:8000/`
+- **Admin Portal:** `http://localhost:8000/admin/login`
+- **Staff Portal (Manager / Employee):** `http://localhost:8000/staff/login`
+- **Client Portal:** `http://localhost:8000/client/login`
 
 ---
 
-### Option 2: PHP Built-in Server (Development)
+#### Option 2: Local Web Server (XAMPP Apache)
 
-Run the built-in server targeting the `public` directory:
-
-```bash
-php -S localhost:8000 -t public
-```
-
-Then visit `http://localhost:8000` in your browser.
+- Đảm bảo repo nằm trong `C:\xampp\htdocs\work-hr-management` hoặc tạo Symbolic Link từ `htdocs` trỏ đến vị trí repo:
+  ```cmd
+  mklink /D "C:\xampp\htdocs\work-hr-management" "D:\path\to\work-hr-management"
+  ```
+- Bật cả **Apache** và **MySQL** trong XAMPP Control Panel.
+- Truy cập các portal:
+  - **Base URL:** `http://localhost/work-hr-management/public/`
+  - **Admin Portal:** `http://localhost/work-hr-management/public/admin/login`
+  - **Staff Portal:** `http://localhost/work-hr-management/public/staff/login`
+  - **Client Portal:** `http://localhost/work-hr-management/public/client/login`

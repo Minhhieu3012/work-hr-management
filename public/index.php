@@ -161,6 +161,10 @@ if (strpos($path, APP_URL) === 0) {
     $path = substr($path, strlen(APP_URL));
 } elseif (strpos($path, PROJECT_URL . '/public') === 0) {
     $path = substr($path, strlen(PROJECT_URL . '/public'));
+} elseif (strpos($path, PROJECT_URL) === 0) {
+    $path = substr($path, strlen(PROJECT_URL));
+} elseif (strpos($path, '/public') === 0) {
+    $path = substr($path, strlen('/public'));
 }
 
 $path = '/' . trim($path, '/');
@@ -310,7 +314,11 @@ try {
      * View resolver giữ tương thích cấu trúc app/View hiện tại.
      * Đợt sau mới move sang app/View/admin, staff, client sâu hơn.
      */
-    $viewPath = BASE_PATH . '/app/View' . $path;
+    if (strpos($path, '/app/View/') === 0) {
+        $viewPath = BASE_PATH . $path;
+    } else {
+        $viewPath = BASE_PATH . '/app/View' . $path;
+    }
 
     if (file_exists($viewPath) && is_file($viewPath)) {
         header('Content-Type: text/html; charset=utf-8');
