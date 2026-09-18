@@ -1,11 +1,4 @@
 <?php
-/**
- * Work & HR Management - CENTRAL ENTRY POINT
- * Đợt 1:
- * - Load route theo từng luồng: admin, staff, client, api
- * - Giữ tương thích app/View hiện tại để chưa phải move view ngay
- * - Khôi phục session từ JWT cookie để hạn chế lỗi nhảy role
- */
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
@@ -24,12 +17,76 @@ define('BASE_PATH', dirname(__DIR__));
 define('PROJECT_URL', '/work-hr-management');
 define('APP_URL', '/work-hr-management/public');
 
-require_once BASE_PATH . '/vendor/autoload.php';
+// Composer autoloader hoặc Fallback PSR-4 Autoloader
+if (file_exists(BASE_PATH . '/vendor/autoload.php')) {
+    require_once BASE_PATH . '/vendor/autoload.php';
+} else {
+    // Tự động load class chuẩn PSR-4 khi chưa chạy composer install
+    spl_autoload_register(function ($class) {
+        $prefixes = [
+            'App\\'  => BASE_PATH . '/app/',
+            'Core\\' => BASE_PATH . '/core/',
+        ];
 
-if (file_exists(BASE_PATH . '/.env')) {
-    $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
-    $dotenv->load();
+        foreach ($prefixes as $prefix => $baseDir) {
+            $len = strlen($prefix);
+            if (strncmp($prefix, $class, $len) !== 0) {
+                continue;
+            }
+
+            $relativeClass = substr($class, $len);
+            $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+            if (file_exists($file)) {
+                require_once $file;
+                return;
+            }
+
+            // Hỗ trợ thư mục viết thường trong app (services, enums, etc.)
+            $parts = explode('\\', $relativeClass);
+            if (count($parts) > 1) {
+                $parts[0] = strtolower($parts[0]);
+                $fileLower = $baseDir . implode('/', $parts) . '.php';
+                if (file_exists($fileLower)) {
+                    require_once $fileLower;
+                    return;
+                }
+            }
+        }
+    });
 }
+
+// Đọc cấu hình từ file .env
+if (file_exists(BASE_PATH . '/.env')) {
+    if (class_exists('Dotenv\\Dotenv')) {
+        $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
+        $dotenv->load();
+    } else {
+        // Fallback đọc file .env thuần PHP không phụ thuộc thư viện ngoài
+        $lines = file(BASE_PATH . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '#') === 0) {
+                continue;
+            }
+            if (strpos($line, '=') !== false) {
+                [$name, $value] = explode('=', $line, 2);
+                $name = trim($name);
+                $value = trim($value);
+                // Gỡ bỏ dấu ngoặc kép hoặc đơn bọc ngoài nếu có
+                if (preg_match('/^([\'"])(.*)\1$/', $value, $matches)) {
+                    $value = $matches[2];
+                }
+                if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+                    putenv("{$name}={$value}");
+                    $_ENV[$name] = $value;
+                    $_SERVER[$name] = $value;
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Normalize JWT payload vì JwtHandler có thể trả object hoặc array.
@@ -195,6 +252,11 @@ function cah_redirect(string $url): void {
 }
 
 try {
+    // Tự động kiểm tra và khởi tạo tài khoản quản trị ban đầu nếu database còn trống
+    if (class_exists(AdminSeeder::class)) {
+        AdminSeeder::run();
+    }
+
     foreach ($routes as $route) {
         [$routeMethod, $routePath, $handler, $roles] = array_pad($route, 4, null);
 
@@ -254,10 +316,6 @@ try {
         header('Content-Type: text/html; charset=utf-8');
         require_once $viewPath;
         exit;
-    }
-
-    if (class_exists(AdminSeeder::class)) {
-        AdminSeeder::run();
     }
 
     http_response_code(404);

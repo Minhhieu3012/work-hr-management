@@ -84,15 +84,10 @@ require __DIR__ . '/../components/page-header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const token = localStorage.getItem('cah_token'); 
+    const token = localStorage.getItem('cah_token') || localStorage.getItem('cah_auth_token') || ''; 
     const baseUrl = '/work-hr-management';
 
-    if (!token) { 
-        window.location.href = baseUrl + '/public/auth/login.php'; 
-        return; 
-    }
-
-    const handleAction = (action, id = null) => {
+    const handleAction = (action, id = null, btn = null) => {
         const viewUrl = baseUrl + '/app/View/hrm';
         switch(action) {
             case 'add-department': window.location.href = `${viewUrl}/add-department.php`; break;
@@ -110,18 +105,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!confirm(`Bạn có chắc chắn muốn xóa phòng ban "${deptName}" không?`)) return;
                 fetch(baseUrl + '/public/api/organization/departments/' + id, {
                     method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
+                .then(async res => {
+                    const data = await res.json().catch(() => ({ status: 'error', message: 'Lỗi phản hồi máy chủ' }));
+                    if (res.ok && data.status === 'success') {
                         alert('✅ ' + data.message);
                         location.reload();
                     } else {
-                        alert('❌ THÔNG BÁO TỪ TRIGGER CSDL:\n\n' + data.message);
+                        alert('❌ THÔNG BÁO TỪ TRIGGER CSDL:\n\n' + (data.message || 'Không thể xóa phòng ban.'));
                     }
                 })
                 .catch(err => {
+                    console.error(err);
                     alert('Lỗi kết nối máy chủ.');
                 });
                 break;
@@ -131,7 +130,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action]');
-        if (btn) handleAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'), btn);
+        if (btn) {
+            e.preventDefault();
+            handleAction(btn.getAttribute('data-action'), btn.getAttribute('data-id'), btn);
+        }
     });
 
     // Gọi API lấy dữ liệu thực

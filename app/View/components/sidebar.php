@@ -125,6 +125,13 @@ const SidebarController = {
             icon: '!',
             roles: ['admin']
         },
+        {
+            key: 'departments',
+            label: 'Cơ cấu tổ chức',
+            href: '/hrm/departments.php',
+            icon: '🏢',
+            roles: ['admin', 'manager']
+        },
 
         {
             key: 'dashboard',
