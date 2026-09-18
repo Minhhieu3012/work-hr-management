@@ -8,8 +8,15 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $userRoleSession = isset($_SESSION['user_role']) ? strtolower((string)$_SESSION['user_role']) : null;
+if (!$userRoleSession && strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/') !== false) {
+    $userRoleSession = 'admin';
+}
+if (!$userRoleSession) {
+    $userRoleSession = 'admin';
+}
+
 $activeMenu = $activeMenu ?? 'dashboard';
-$brandName  = $brandName  ?? 'Work & HR Management';
+$brandName  = 'Work & HR Management';
 $baseUrl    = $baseUrl    ?? '/work-hr-management';
 $viewUrl    = $viewUrl    ?? ($baseUrl . '/app/View');
 $publicUrl  = $baseUrl . '/public';
@@ -23,9 +30,110 @@ if ($userRoleSession === 'admin') {
 if ($userRoleSession === 'client') {
     $defaultHomeHref = $viewUrl . '/client-portal/projects.php';
 }
+
+$allMenus = [
+    [
+        'key' => 'admin-dashboard',
+        'label' => 'Home',
+        'href' => '/admin/dashboard/index.php',
+        'icon' => '⌂',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'admin-approve-managers',
+        'label' => 'Duyệt Manager',
+        'href' => '/admin/approvals/managers.php',
+        'icon' => 'M',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'admin-approve-accounts',
+        'label' => 'Duyệt nhân sự',
+        'href' => '/admin/approvals/accounts.php',
+        'icon' => '✓',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'admin-accounts',
+        'label' => 'Danh sách tài khoản',
+        'href' => '/admin/accounts/index.php',
+        'icon' => '◉',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'admin-projects',
+        'label' => 'Danh sách project',
+        'href' => '/admin/projects/index.php',
+        'icon' => '▣',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'admin-account-security',
+        'label' => 'Khóa / mở khóa',
+        'href' => '/admin/accounts/security.php',
+        'icon' => '!',
+        'roles' => ['admin']
+    ],
+    [
+        'key' => 'departments',
+        'label' => 'Cơ cấu tổ chức',
+        'href' => '/hrm/departments.php',
+        'icon' => '🏢',
+        'roles' => ['admin', 'manager']
+    ],
+    [
+        'key' => 'dashboard',
+        'label' => 'Home',
+        'href' => '/dashboard/index.php',
+        'icon' => '⌂',
+        'roles' => ['manager', 'employee']
+    ],
+    [
+        'key' => 'employees',
+        'label' => 'Nhân sự & Tài khoản',
+        'href' => '/hrm/employees.php',
+        'icon' => '👥',
+        'roles' => ['admin', 'manager']
+    ],
+    [
+        'key' => 'projects',
+        'label' => 'Dự án',
+        'href' => '/tasks/projects.php',
+        'icon' => '▣',
+        'roles' => ['manager']
+    ],
+    [
+        'key' => 'kanban',
+        'label' => 'Bảng Kanban',
+        'href' => '/tasks/kanban.php',
+        'icon' => '☑',
+        'roles' => ['manager', 'employee']
+    ],
+    [
+        'key' => 'attendance',
+        'label' => 'Chấm công',
+        'href' => '/payroll/attendance.php',
+        'icon' => '◴',
+        'roles' => ['manager', 'employee']
+    ],
+    [
+        'key' => 'leave_request',
+        'label' => 'Nghỉ phép',
+        'href' => '/payroll/leave_request.php',
+        'icon' => '✦',
+        'roles' => ['manager', 'employee']
+    ],
+    [
+        'key' => 'approvals',
+        'label' => 'Phê duyệt',
+        'href' => '/payroll/manager_approvals.php',
+        'icon' => '✓',
+        'roles' => ['manager']
+    ]
+];
 ?>
 
-<aside class="app-sidebar" id="appSidebar" style="display: none; flex-direction: column;">
+<aside class="app-sidebar" id="appSidebar">
     <div class="sidebar-header">
         <a
             href="<?php echo htmlspecialchars($defaultHomeHref, ENT_QUOTES, 'UTF-8'); ?>"
@@ -39,14 +147,20 @@ if ($userRoleSession === 'client') {
         </a>
     </div>
 
-    <div class="sidebar-scroll" style="flex: 1; overflow-y: auto;">
+    <div class="sidebar-scroll">
         <nav class="sidebar-nav" id="mainNavigation">
-            <div style="padding: 20px; color: #999; font-size: 0.8rem; text-align: center;">
-                Đang đồng bộ quyền hạn...
-            </div>
+            <?php foreach ($allMenus as $item): ?>
+                <?php if (in_array($userRoleSession, $item['roles'], true)): ?>
+                    <?php $isActive = ($activeMenu === $item['key']) ? 'is-active' : ''; ?>
+                    <a href="<?php echo htmlspecialchars($viewUrl . $item['href'], ENT_QUOTES, 'UTF-8'); ?>" class="sidebar-link <?php echo $isActive; ?>">
+                        <span class="sidebar-icon"><?php echo $item['icon']; ?></span>
+                        <span><?php echo htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    </a>
+                <?php endif; ?>
+            <?php endforeach; ?>
         </nav>
 
-        <div class="sidebar-section" id="otherSpaceSection" style="display: none;">
+        <div class="sidebar-section" id="otherSpaceSection" style="<?php echo ($userRoleSession === 'manager' || $userRoleSession === 'employee') ? 'display: block;' : 'display: none;'; ?>">
             <div class="sidebar-section-title">KHÔNG GIAN KHÁC</div>
 
             <nav class="sidebar-nav sidebar-nav-compact">
@@ -64,7 +178,14 @@ if ($userRoleSession === 'client') {
     </div>
 
     <div class="sidebar-footer">
-        <div id="sidebarActionBtn"></div>
+        <div id="sidebarActionBtn">
+            <?php if ($userRoleSession === 'manager'): ?>
+                <a href="<?php echo htmlspecialchars($viewUrl, ENT_QUOTES, 'UTF-8'); ?>/tasks/projects.php" class="btn btn-primary btn-block">
+                    <span>＋</span>
+                    <span>Tạo mới</span>
+                </a>
+            <?php endif; ?>
+        </div>
 
         <a href="javascript:void(0)" onclick="handleLogout()" class="sidebar-link sidebar-link-danger">
             <span class="sidebar-icon">↪</span>
@@ -82,107 +203,7 @@ const SidebarController = {
         publicUrl: "<?php echo htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8'); ?>"
     },
 
-    allMenus: [
-        {
-            key: 'admin-dashboard',
-            label: 'Home',
-            href: '/admin/dashboard/index.php',
-            icon: '⌂',
-            roles: ['admin']
-        },
-        {
-            key: 'admin-approve-managers',
-            label: 'Duyệt Manager',
-            href: '/admin/approvals/managers.php',
-            icon: 'M',
-            roles: ['admin']
-        },
-        {
-            key: 'admin-approve-accounts',
-            label: 'Duyệt nhân sự',
-            href: '/admin/approvals/accounts.php',
-            icon: '✓',
-            roles: ['admin']
-        },
-        {
-            key: 'admin-accounts',
-            label: 'Danh sách tài khoản',
-            href: '/admin/accounts/index.php',
-            icon: '◉',
-            roles: ['admin']
-        },
-        {
-            key: 'admin-projects',
-            label: 'Danh sách project',
-            href: '/admin/projects/index.php',
-            icon: '▣',
-            roles: ['admin']
-        },
-        {
-            key: 'admin-account-security',
-            label: 'Khóa / mở khóa',
-            href: '/admin/accounts/security.php',
-            icon: '!',
-            roles: ['admin']
-        },
-        {
-            key: 'departments',
-            label: 'Cơ cấu tổ chức',
-            href: '/hrm/departments.php',
-            icon: '🏢',
-            roles: ['admin', 'manager']
-        },
-
-        {
-            key: 'dashboard',
-            label: 'Home',
-            href: '/dashboard/index.php',
-            icon: '⌂',
-            roles: ['manager', 'employee']
-        },
-        {
-            key: 'employees',
-            label: 'Nhân sự',
-            href: '/hrm/employees.php',
-            icon: '◉',
-            roles: ['manager']
-        },
-        {
-            key: 'projects',
-            label: 'Dự án',
-            href: '/tasks/projects.php',
-            icon: '▣',
-            roles: ['manager']
-        },
-        {
-            key: 'kanban',
-            label: 'Bảng Kanban',
-            href: '/tasks/kanban.php',
-            icon: '☑',
-            roles: ['manager', 'employee']
-        },
-        {
-            key: 'attendance',
-            label: 'Chấm công',
-            href: '/payroll/attendance.php',
-            icon: '◴',
-            roles: ['manager', 'employee']
-        },
-        {
-            key: 'leave_request',
-            label: 'Nghỉ phép',
-            href: '/payroll/leave_request.php',
-            icon: '✦',
-            roles: ['manager', 'employee']
-        },
-        {
-            key: 'approvals',
-            label: 'Phê duyệt',
-            href: '/payroll/manager_approvals.php',
-            icon: '✓',
-            roles: ['manager']
-        }
-    ],
+    allMenus: <?php echo json_encode($allMenus, JSON_UNESCAPED_UNICODE); ?>,
 
     init() {
         const userData = this.getLocalUser();
@@ -199,7 +220,12 @@ const SidebarController = {
             return;
         }
 
-        this.renderUI(userRole);
+        const serverRole = "<?php echo $userRoleSession ?? ''; ?>";
+        // Chỉ re-render DOM nếu role lưu trong localStorage khác với role phía Server render
+        if (userRole && userRole !== serverRole) {
+            this.renderUI(userRole);
+        }
+
         this.syncWithServer(token);
     },
 
@@ -232,11 +258,10 @@ const SidebarController = {
     renderUI(role) {
         const navContainer = document.getElementById('mainNavigation');
         const actionBtnContainer = document.getElementById('sidebarActionBtn');
-        const sidebar = document.getElementById('appSidebar');
         const brandLink = document.getElementById('sidebarBrandLink');
         const otherSpaceSection = document.getElementById('otherSpaceSection');
 
-        if (!navContainer || !actionBtnContainer || !sidebar) {
+        if (!navContainer || !actionBtnContainer) {
             return;
         }
 
@@ -283,8 +308,6 @@ const SidebarController = {
                 ? 'block'
                 : 'none';
         }
-
-        sidebar.style.display = 'flex';
     },
 
     recoverSession(token) {

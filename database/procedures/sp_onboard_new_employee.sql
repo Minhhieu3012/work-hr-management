@@ -30,13 +30,14 @@ BEGIN
         RESIGNAL; 
     END;
     
-    -- Kiểm tra điều kiện đầu vào
-    IF p_salary IS NULL OR p_salary <= 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lương thử việc phải lớn hơn 0!';
-    END IF;
-    
     -- Bắt đầu giao tác
     START TRANSACTION;
+    
+    -- Kiểm tra điều kiện đầu vào (hoặc để ràng buộc chk_contract_salary tự kích hoạt)
+    IF p_salary IS NULL OR p_salary <= 0 THEN
+        ROLLBACK;
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lương hợp đồng phải lớn hơn 0 (Vi phạm ràng buộc chk_contract_salary)! Giao dịch tự động ROLLBACK.';
+    END IF;
     
     -- Bước 1: Tạo nhân viên
     INSERT INTO employees (department_id, position_id, employee_code, full_name, email, password, hire_date)

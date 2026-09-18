@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Khóa / mở khóa tài khoản | Work & HR Management System';
+$pageTitle = 'Khóa / mở khóa tài khoản | Work & HR Management';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-account-security';
 $topbarTitle = 'Khóa / mở khóa';
-$brandName = 'Work & HR Management System';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>

@@ -1,22 +1,18 @@
 <?php
-$pageTitle = 'Admin Dashboard | Work & HR Management System';
+$pageTitle = 'Admin Dashboard | Work & HR Management';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-dashboard';
 $topbarTitle = 'Admin Dashboard';
-$brandName = 'Work & HR Management System';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>
 
 <?php
 $pageHeading = 'Admin Dashboard';
-$pageSubtitle = 'Tổng quan hệ thống Work & HR Management System.';
-$pageAction = '
-    <a class="btn btn-primary" href="/work-hr-management/app/View/admin/accounts/index.php">
-        Quản lý tài khoản
-    </a>
-';
+$pageSubtitle = 'Tổng quan hệ thống Work & HR Management.';
+
 require __DIR__ . '/../../components/page-header.php';
 ?>
 

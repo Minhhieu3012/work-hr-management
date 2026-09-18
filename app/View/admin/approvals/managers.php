@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Duyệt Manager | Work & HR Management System';
+$pageTitle = 'Duyệt Manager | Work & HR Management';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-approve-managers';
 $topbarTitle = 'Duyệt Manager';
-$brandName = 'Work & HR Management System';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>

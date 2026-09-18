@@ -198,12 +198,16 @@
 
 .table-responsive {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
 }
 
 .data-table {
-    min-width: 860px;
+    min-width: 760px;
     width: 100%;
+    border-collapse: collapse;
 }
 
 .data-table th {

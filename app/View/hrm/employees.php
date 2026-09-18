@@ -17,7 +17,10 @@ ob_start();
 $pageHeading = 'Nhân sự & Tài khoản';
 $pageSubtitle = 'Quản lý nhân sự, tài khoản client/employee và luồng duyệt tài khoản theo vai trò.';
 $pageAction = '
-    <button class="btn btn-primary" type="button" data-open-create-account style="display:none;">
+    <button class="btn btn-primary" type="button" id="btnOpenOnboardModal" style="display:inline-flex; align-items:center; gap:6px;">
+        ＋ Tiếp nhận nhân sự
+    </button>
+    <button class="btn btn-emerald" type="button" data-open-create-account style="display:none; align-items:center; gap:6px;">
         ＋ Tạo tài khoản
     </button>
     <button class="btn btn-light" type="button" data-refresh-accounts>
@@ -83,39 +86,20 @@ require __DIR__ . '/../components/page-header.php';
                 <div class="hrm-form-grid">
                     <div class="form-group">
                         <label class="form-label" for="account_full_name">Họ và tên</label>
-                        <input
-                            id="account_full_name"
-                            class="form-control"
-                            type="text"
-                            name="full_name"
-                            placeholder="VD: Nguyễn Văn A"
-                            required
-                        >
+                        <input id="account_full_name" class="form-control" type="text" name="full_name"
+                            placeholder="VD: Nguyễn Văn A" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="account_email">Email</label>
-                        <input
-                            id="account_email"
-                            class="form-control"
-                            type="email"
-                            name="email"
-                            placeholder="name@agency.vn"
-                            required
-                        >
+                        <input id="account_email" class="form-control" type="email" name="email"
+                            placeholder="name@agency.vn" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="account_password">Mật khẩu mặc định</label>
-                        <input
-                            id="account_password"
-                            class="form-control"
-                            type="text"
-                            name="password"
-                            value="123456"
-                            minlength="6"
-                            required
-                        >
+                        <input id="account_password" class="form-control" type="text" name="password" value="123456"
+                            minlength="6" required>
                     </div>
 
                     <div class="form-group">
@@ -142,14 +126,8 @@ require __DIR__ . '/../components/page-header.php';
 
                     <div class="form-group">
                         <label class="form-label" for="account_phone">Số điện thoại</label>
-                        <input
-                            id="account_phone"
-                            class="form-control"
-                            type="text"
-                            name="phone"
-                            maxlength="20"
-                            placeholder="Tuỳ chọn"
-                        >
+                        <input id="account_phone" class="form-control" type="text" name="phone" maxlength="20"
+                            placeholder="Tuỳ chọn">
                     </div>
 
                     <div class="form-group">
@@ -214,7 +192,8 @@ require __DIR__ . '/../components/page-header.php';
         <div class="card-header dashboard-card-title-row">
             <div>
                 <h2>Nhân sự theo Project</h2>
-                <p>Manager thêm hoặc gỡ Employee khỏi từng project. Nhân sự được thêm vào đây mới xuất hiện trong dropdown giao task của project đó.</p>
+                <p>Manager thêm hoặc gỡ Employee khỏi từng project. Nhân sự được thêm vào đây mới xuất hiện trong
+                    dropdown giao task của project đó.</p>
             </div>
 
             <button class="btn btn-soft" type="button" data-refresh-project-members>
@@ -324,7 +303,7 @@ require __DIR__ . '/../components/page-header.php';
 </section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     const apiRoot = '<?php echo $publicUrl; ?>';
 
     const createButton = document.querySelector('[data-open-create-account]');
@@ -499,14 +478,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const role = String(currentUser?.role || '').toLowerCase();
 
         if (role === 'manager') {
-            createButton.style.display = 'inline-flex';
-            projectMemberCard.style.display = 'block';
-            listDescription.textContent = 'Manager xem các tài khoản mình tạo/quản lý. Tài khoản mới sẽ chờ Admin duyệt.';
+            if (createButton) createButton.style.display = 'inline-flex';
+            if (projectMemberCard) projectMemberCard.style.display = 'block';
+            if (listDescription) listDescription.textContent =
+                'Manager xem các tài khoản mình tạo/quản lý. Tài khoản mới sẽ chờ Admin duyệt.';
         }
 
         if (role === 'admin') {
-            adminPendingCard.style.display = 'block';
-            listDescription.textContent = 'Admin xem toàn bộ tài khoản và duyệt các tài khoản Manager gửi lên.';
+            if (adminPendingCard) adminPendingCard.style.display = 'block';
+            if (listDescription) listDescription.textContent =
+                'Admin xem toàn bộ tài khoản và duyệt các tài khoản Manager gửi lên.';
         }
     }
 
@@ -517,13 +498,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const departments = Array.isArray(data.departments) ? data.departments : [];
             const positions = Array.isArray(data.positions) ? data.positions : [];
 
-            departmentSelect.innerHTML = '<option value="">Tự chọn mặc định</option>' + departments.map(function (department) {
-                return `<option value="${department.id}">${escapeHtml(department.name)}</option>`;
-            }).join('');
+            departmentSelect.innerHTML = '<option value="">Tự chọn mặc định</option>' + departments.map(
+                function(department) {
+                    return `<option value="${department.id}">${escapeHtml(department.name)}</option>`;
+                }).join('');
 
-            positionSelect.innerHTML = '<option value="">Tự chọn mặc định</option>' + positions.map(function (position) {
-                return `<option value="${position.id}">${escapeHtml(position.name)}</option>`;
-            }).join('');
+            positionSelect.innerHTML = '<option value="">Tự chọn mặc định</option>' + positions.map(
+                function(position) {
+                    return `<option value="${position.id}">${escapeHtml(position.name)}</option>`;
+                }).join('');
         } catch (error) {
             departmentSelect.innerHTML = '<option value="">Tự chọn mặc định</option>';
             positionSelect.innerHTML = '<option value="">Tự chọn mặc định</option>';
@@ -547,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return '<option value="">Chưa có project để quản lý</option>';
         }
 
-        return '<option value="">Chọn project</option>' + projects.map(function (project) {
+        return '<option value="">Chọn project</option>' + projects.map(function(project) {
             const id = getProjectId(project);
             const selected = Number(id) === Number(selectedId) ? 'selected' : '';
             const label = project.name || project.project_name || ('Project #' + id);
@@ -557,11 +540,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function employeeOptionHtml(employees, selectedId = '', members = []) {
-        const memberIds = new Set((Array.isArray(members) ? members : []).map(function (member) {
+        const memberIds = new Set((Array.isArray(members) ? members : []).map(function(member) {
             return getEmployeeId(member);
         }));
 
-        const availableEmployees = (Array.isArray(employees) ? employees : []).filter(function (employee) {
+        const availableEmployees = (Array.isArray(employees) ? employees : []).filter(function(employee) {
             const id = getEmployeeId(employee);
             return id > 0 && !memberIds.has(id);
         });
@@ -570,7 +553,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return '<option value="">Không còn Employee active để thêm</option>';
         }
 
-        return '<option value="">Chọn Employee active để thêm</option>' + availableEmployees.map(function (employee) {
+        return '<option value="">Chọn Employee active để thêm</option>' + availableEmployees.map(function(
+            employee) {
             const id = getEmployeeId(employee);
             const selected = Number(id) === Number(selectedId) ? 'selected' : '';
             const labelParts = [
@@ -604,7 +588,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!projectMemberProjectSelect || !projectMemberEmployeeSelect) return;
         const selectedProjectId = projectMemberProjectSelect.value || '';
         projectMemberProjectSelect.innerHTML = projectOptionHtml(projectOptions.projects, selectedProjectId);
-        projectMemberEmployeeSelect.innerHTML = employeeOptionHtml(projectOptions.employees, '', selectedProjectMembers);
+        projectMemberEmployeeSelect.innerHTML = employeeOptionHtml(projectOptions.employees, '',
+            selectedProjectMembers);
     }
 
     async function loadProjectOptions() {
@@ -620,8 +605,10 @@ document.addEventListener('DOMContentLoaded', function () {
             renderProjectMemberOptions();
 
             if (projectOptions.projects.length === 0) {
-                projectMemberSummary.textContent = 'Chưa có project nào trong phạm vi quản lý của Manager hiện tại.';
-                projectMemberTableBody.innerHTML = `<tr><td colspan="5">Chưa có project để thêm nhân sự.</td></tr>`;
+                projectMemberSummary.textContent =
+                    'Chưa có project nào trong phạm vi quản lý của Manager hiện tại.';
+                projectMemberTableBody.innerHTML =
+                    `<tr><td colspan="5">Chưa có project để thêm nhân sự.</td></tr>`;
                 return;
             }
 
@@ -632,7 +619,8 @@ document.addEventListener('DOMContentLoaded', function () {
             await loadProjectMembers(projectMemberProjectSelect.value);
         } catch (error) {
             projectMemberSummary.textContent = 'Không thể tải project/employees: ' + error.message;
-            projectMemberTableBody.innerHTML = `<tr><td colspan="5" style="color: var(--danger);">Không thể tải dữ liệu project: ${escapeHtml(error.message)}</td></tr>`;
+            projectMemberTableBody.innerHTML =
+                `<tr><td colspan="5" style="color: var(--danger);">Không thể tải dữ liệu project: ${escapeHtml(error.message)}</td></tr>`;
         }
     }
 
@@ -652,7 +640,8 @@ document.addEventListener('DOMContentLoaded', function () {
         projectMemberTableBody.innerHTML = `<tr><td colspan="5">Đang tải nhân sự project...</td></tr>`;
 
         try {
-            const payload = await apiRequest('/api/projects/' + encodeURIComponent(selectedProjectId) + '/members');
+            const payload = await apiRequest('/api/projects/' + encodeURIComponent(selectedProjectId) +
+                '/members');
             const data = payload.data || {};
 
             if (Array.isArray(data)) selectedProjectMembers = data;
@@ -663,28 +652,31 @@ document.addEventListener('DOMContentLoaded', function () {
             renderProjectMembers();
             renderProjectMemberOptions();
         } catch (error) {
-            projectMemberTableBody.innerHTML = `<tr><td colspan="5" style="color: var(--danger);">Không thể tải nhân sự project: ${escapeHtml(error.message)}</td></tr>`;
+            projectMemberTableBody.innerHTML =
+                `<tr><td colspan="5" style="color: var(--danger);">Không thể tải nhân sự project: ${escapeHtml(error.message)}</td></tr>`;
         }
     }
 
     function renderProjectMembers() {
         const selectedProjectId = projectMemberProjectSelect.value;
-        const selectedProject = projectOptions.projects.find(function (project) {
+        const selectedProject = projectOptions.projects.find(function(project) {
             return getProjectId(project) === Number(selectedProjectId);
         });
 
         if (!selectedProjectId) {
             projectMemberSummary.textContent = 'Chọn project để xem danh sách nhân sự đang tham gia.';
         } else {
-            projectMemberSummary.textContent = `${selectedProjectMembers.length} nhân sự đang tham gia project "${selectedProject?.name || selectedProject?.project_name || ('#' + selectedProjectId)}".`;
+            projectMemberSummary.textContent =
+                `${selectedProjectMembers.length} nhân sự đang tham gia project "${selectedProject?.name || selectedProject?.project_name || ('#' + selectedProjectId)}".`;
         }
 
         if (selectedProjectMembers.length === 0) {
-            projectMemberTableBody.innerHTML = `<tr><td colspan="5">Project này chưa có Employee nào. Hãy thêm nhân sự trước khi giao task.</td></tr>`;
+            projectMemberTableBody.innerHTML =
+                `<tr><td colspan="5">Project này chưa có Employee nào. Hãy thêm nhân sự trước khi giao task.</td></tr>`;
             return;
         }
 
-        projectMemberTableBody.innerHTML = selectedProjectMembers.map(function (member) {
+        projectMemberTableBody.innerHTML = selectedProjectMembers.map(function(member) {
             const memberId = getEmployeeId(member);
             return `
                 <tr data-project-member-id="${escapeHtml(memberId)}">
@@ -722,11 +714,16 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             await apiRequest('/api/projects/' + encodeURIComponent(projectId) + '/members', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ employee_id: Number(employeeId) })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    employee_id: Number(employeeId)
+                })
             });
 
-            toast('success', 'Đã thêm nhân sự', 'Employee đã được thêm vào project. Dropdown giao task sẽ nhận nhân sự này.');
+            toast('success', 'Đã thêm nhân sự',
+                'Employee đã được thêm vào project. Dropdown giao task sẽ nhận nhân sự này.');
             await loadProjectMembers(projectId);
         } catch (error) {
             toast('error', 'Không thể thêm nhân sự', error.message);
@@ -744,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const member = selectedProjectMembers.find(function (item) {
+        const member = selectedProjectMembers.find(function(item) {
             return getEmployeeId(item) === Number(employeeId);
         });
 
@@ -752,9 +749,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!ok) return;
 
         try {
-            await apiRequest('/api/projects/' + encodeURIComponent(projectId) + '/members/' + encodeURIComponent(employeeId), {
-                method: 'DELETE'
-            });
+            await apiRequest('/api/projects/' + encodeURIComponent(projectId) + '/members/' +
+                encodeURIComponent(employeeId), {
+                    method: 'DELETE'
+                });
 
             toast('success', 'Đã gỡ nhân sự', 'Employee đã được gỡ khỏi project.');
             await loadProjectMembers(projectId);
@@ -789,7 +787,8 @@ document.addEventListener('DOMContentLoaded', function () {
             renderAccounts();
             updateStats();
         } catch (error) {
-            accountBody.innerHTML = `<tr><td colspan="8" style="color: var(--danger);">Không thể tải tài khoản: ${escapeHtml(error.message)}</td></tr>`;
+            accountBody.innerHTML =
+                `<tr><td colspan="8" style="color: var(--danger);">Không thể tải tài khoản: ${escapeHtml(error.message)}</td></tr>`;
         }
     }
 
@@ -807,7 +806,8 @@ document.addEventListener('DOMContentLoaded', function () {
             renderPendingAccounts();
             updateStats();
         } catch (error) {
-            pendingBody.innerHTML = `<tr><td colspan="6" style="color: var(--danger);">Không thể tải pending: ${escapeHtml(error.message)}</td></tr>`;
+            pendingBody.innerHTML =
+                `<tr><td colspan="6" style="color: var(--danger);">Không thể tải pending: ${escapeHtml(error.message)}</td></tr>`;
         }
     }
 
@@ -817,11 +817,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        accountBody.innerHTML = accounts.map(function (account) {
+        accountBody.innerHTML = accounts.map(function(account) {
             // Chỉ hiển thị nút soi Deadline với role Employee
-            const btnHtml = account.role === 'employee' 
-                ? `<button class="btn btn-soft btn-sm" type="button" data-view-upcoming="${account.id}" title="Xem task sắp hết hạn của nhân viên này">🔎 Deadline</button>` 
-                : '';
+            const btnHtml = account.role === 'employee' ?
+                `<button class="btn btn-soft btn-sm" type="button" data-view-upcoming="${account.id}" title="Xem task sắp hết hạn của nhân viên này">🔎 Deadline</button>` :
+                '';
 
             return `
                 <tr>
@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        pendingBody.innerHTML = pendingAccounts.map(function (account) {
+        pendingBody.innerHTML = pendingAccounts.map(function(account) {
             return `
                 <tr data-pending-account-id="${account.id}">
                     <td>${accountIdentityHtml(account)}</td>
@@ -874,18 +874,24 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateStats() {
         const merged = [...accounts];
 
-        pendingAccounts.forEach(function (pending) {
-            if (!merged.some(function (account) {
-                return Number(account.id) === Number(pending.id);
-            })) {
+        pendingAccounts.forEach(function(pending) {
+            if (!merged.some(function(account) {
+                    return Number(account.id) === Number(pending.id);
+                })) {
                 merged.push(pending);
             }
         });
 
         const total = merged.length;
-        const active = merged.filter(function (account) { return String(account.status || '').toLowerCase() === 'active'; }).length;
-        const pending = merged.filter(function (account) { return String(account.status || '').toLowerCase() === 'inactive'; }).length;
-        const suspended = merged.filter(function (account) { return String(account.status || '').toLowerCase() === 'suspended'; }).length;
+        const active = merged.filter(function(account) {
+            return String(account.status || '').toLowerCase() === 'active';
+        }).length;
+        const pending = merged.filter(function(account) {
+            return String(account.status || '').toLowerCase() === 'inactive';
+        }).length;
+        const suspended = merged.filter(function(account) {
+            return String(account.status || '').toLowerCase() === 'suspended';
+        }).length;
 
         statTotal.textContent = String(total);
         statActive.textContent = String(active);
@@ -900,7 +906,10 @@ document.addEventListener('DOMContentLoaded', function () {
         createPanel.style.display = nextOpen ? 'block' : 'none';
 
         if (nextOpen) {
-            createPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            createPanel.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     }
 
@@ -926,7 +935,9 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             await apiRequest('/api/accounts', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
             });
 
@@ -944,7 +955,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function approveAccount(id) {
         try {
-            await apiRequest('/api/admin/accounts/' + encodeURIComponent(id) + '/approve', { method: 'PATCH' });
+            await apiRequest('/api/admin/accounts/' + encodeURIComponent(id) + '/approve', {
+                method: 'PATCH'
+            });
             toast('success', 'Đã duyệt tài khoản', 'Tài khoản hiện có thể đăng nhập.');
             await loadPendingAccounts();
             await loadAccounts();
@@ -958,7 +971,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!ok) return;
 
         try {
-            await apiRequest('/api/admin/accounts/' + encodeURIComponent(id) + '/reject', { method: 'PATCH' });
+            await apiRequest('/api/admin/accounts/' + encodeURIComponent(id) + '/reject', {
+                method: 'PATCH'
+            });
             toast('success', 'Đã từ chối tài khoản', 'Tài khoản đã chuyển sang Suspended.');
             await loadPendingAccounts();
             await loadAccounts();
@@ -997,11 +1012,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const rows = tasks.map(task => {
                     let deadlineStyle = '';
                     const today = new Date();
-                    today.setHours(0,0,0,0);
+                    today.setHours(0, 0, 0, 0);
                     const dDate = new Date(task.deadline);
-                    
+
                     if (dDate < today) deadlineStyle = 'color: var(--danger); font-weight: bold;';
-                    else if (dDate.getTime() === today.getTime()) deadlineStyle = 'color: #d97706; font-weight: bold;';
+                    else if (dDate.getTime() === today.getTime()) deadlineStyle =
+                        'color: #d97706; font-weight: bold;';
 
                     return `
                         <tr>
@@ -1051,47 +1067,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    createButton.addEventListener('click', function () {
-        toggleCreatePanel(true);
-    });
-
-    refreshButton.addEventListener('click', async function () {
-        await loadAccounts();
-        await loadPendingAccounts();
-        await loadProjectOptions();
-    });
-
-    refreshPendingButton.addEventListener('click', loadPendingAccounts);
-
-    closeCreateButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            toggleCreatePanel(false);
+    if (createButton) {
+        createButton.addEventListener('click', function() {
+            toggleCreatePanel(true);
         });
-    });
+    }
 
-    createForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-        createPendingAccount(createForm);
-    });
+    if (refreshButton) {
+        refreshButton.addEventListener('click', async function() {
+            await loadAccounts();
+            await loadPendingAccounts();
+            await loadProjectOptions();
+        });
+    }
 
-    applyFilterButton.addEventListener('click', loadAccounts);
-    searchInput.addEventListener('input', function () {
-        window.clearTimeout(searchInput._timer);
-        searchInput._timer = window.setTimeout(loadAccounts, 280);
-    });
-    roleFilter.addEventListener('change', loadAccounts);
-    statusFilter.addEventListener('change', loadAccounts);
+    if (refreshPendingButton) {
+        refreshPendingButton.addEventListener('click', loadPendingAccounts);
+    }
+
+    if (closeCreateButtons && closeCreateButtons.length > 0) {
+        closeCreateButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                toggleCreatePanel(false);
+            });
+        });
+    }
+
+    if (createForm) {
+        createForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            createPendingAccount(createForm);
+        });
+    }
+
+    if (applyFilterButton) {
+        applyFilterButton.addEventListener('click', loadAccounts);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            window.clearTimeout(searchInput._timer);
+            searchInput._timer = window.setTimeout(loadAccounts, 280);
+        });
+    }
+
+    if (roleFilter) {
+        roleFilter.addEventListener('change', loadAccounts);
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadAccounts);
+    }
 
     if (projectMemberProjectSelect) {
-        projectMemberProjectSelect.addEventListener('change', function () {
+        projectMemberProjectSelect.addEventListener('change', function() {
             loadProjectMembers(projectMemberProjectSelect.value);
         });
     }
 
     if (refreshProjectMembersButton) {
-        refreshProjectMembersButton.addEventListener('click', async function () {
+        refreshProjectMembersButton.addEventListener('click', async function() {
             await loadProjectOptions();
-            if (projectMemberProjectSelect.value) {
+            if (projectMemberProjectSelect && projectMemberProjectSelect.value) {
                 await loadProjectMembers(projectMemberProjectSelect.value);
             }
         });
@@ -1101,12 +1138,10 @@ document.addEventListener('DOMContentLoaded', function () {
         addProjectMemberButton.addEventListener('click', addProjectMember);
     }
 
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', function(event) {
         const approveButton = event.target.closest('[data-approve-account]');
         const rejectButton = event.target.closest('[data-reject-account]');
         const removeProjectMemberButton = event.target.closest('[data-remove-project-member]');
-        
-        // Bắt sự kiện click nút xem Task sắp đến hạn
         const viewUpcomingButton = event.target.closest('[data-view-upcoming]');
 
         if (removeProjectMemberButton) {
@@ -1126,21 +1161,252 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // ==========================================
+    // LOGIC DEMO TIẾP NHẬN NHÂN SỰ (sp_OnboardNewEmployee)
+    // ==========================================
+    const btnOpenOnboard = document.querySelector('#btnOpenOnboardModal');
+    const modalOnboard = document.querySelector('#onboardModal');
+    const btnCloseOnboard = document.querySelector('#btnCloseOnboardModal');
+    const btnCancelOnboard = document.querySelector('#btnCancelOnboard');
+    const formOnboard = document.querySelector('#onboardForm');
+    const deptOnboardSelect = document.querySelector('#onboardDeptSelect');
+    const posOnboardSelect = document.querySelector('#onboardPosSelect');
+
+    if (btnOpenOnboard && modalOnboard) {
+        btnOpenOnboard.addEventListener('click', async () => {
+            // Mở modal ngay lập tức để người dùng thấy phản hồi
+            modalOnboard.style.display = 'flex';
+
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const empCodeInput = document.querySelector('#onboardEmpCode');
+            if (empCodeInput) empCodeInput.value = 'EMP-' + randomNum;
+
+            try {
+                const payload = await apiRequest('/api/organization/data');
+                const orgData = payload.data || {};
+                if (deptOnboardSelect && Array.isArray(orgData.departments) && orgData.departments
+                    .length > 0) {
+                    deptOnboardSelect.innerHTML = orgData.departments.map(d =>
+                        `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+                }
+                if (posOnboardSelect && Array.isArray(orgData.positions) && orgData.positions
+                    .length > 0) {
+                    posOnboardSelect.innerHTML = orgData.positions.map(p =>
+                        `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+                }
+            } catch (e) {
+                console.warn('Không tải được danh mục org:', e);
+            }
+        });
+
+        const closeOnboard = () => {
+            modalOnboard.style.display = 'none';
+        };
+        if (btnCloseOnboard) btnCloseOnboard.addEventListener('click', closeOnboard);
+        if (btnCancelOnboard) btnCancelOnboard.addEventListener('click', closeOnboard);
+
+        if (formOnboard) {
+            formOnboard.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const salary = parseFloat(document.querySelector('#onboardSalary').value);
+                const payload = {
+                    full_name: document.querySelector('#onboardFullName').value.trim(),
+                    email: document.querySelector('#onboardEmail').value.trim(),
+                    employee_code: document.querySelector('#onboardEmpCode').value.trim(),
+                    department_id: parseInt(deptOnboardSelect ? deptOnboardSelect.value : 1) ||
+                        1,
+                    position_id: parseInt(posOnboardSelect ? posOnboardSelect.value : 1) || 1,
+                    salary: salary,
+                    contract_salary: salary,
+                    contract_type: document.querySelector('#onboardContractType').value,
+                    hire_date: document.querySelector('#onboardHireDate').value,
+                    password: 'password123',
+                    role: 'employee',
+                    status: 'active'
+                };
+
+                const submitBtn = document.querySelector('#btnSubmitOnboard');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Đang thực thi Stored Procedure...';
+                }
+
+                try {
+                    const res = await apiRequest('/api/employees', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    alert('✅ TIẾP NHẬN THÀNH CÔNG (TRANSACTION COMMIT):\n\n' + res.message +
+                        '\n\n-> Nhân viên mới và Hợp đồng lao động khởi điểm đã được ghi nhận vào CSDL trong cùng 1 Giao dịch!'
+                    );
+                    modalOnboard.style.display = 'none';
+                    formOnboard.reset();
+                    await loadAccounts();
+                    await loadPendingAccounts();
+                } catch (err) {
+                    alert('❌ GIAO DỊCH THẤT BẠI (TRANSACTION ROLLBACK):\n\n' + err.message +
+                        '\n\n-> Do vi phạm ràng buộc dữ liệu, Procedure đã tự động ROLLBACK toàn bộ, không tạo nhân viên dở dang!'
+                    );
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Xác nhận Tiếp nhận';
+                    }
+                }
+            });
+        }
+    }
+
     async function init() {
         try {
             await loadCurrentUser();
+        } catch (e) {
+            console.warn('loadCurrentUser error:', e);
+        }
+
+        try {
             await loadOrganizationOptions();
+        } catch (e) {
+            console.warn('loadOrganizationOptions error:', e);
+        }
+
+        try {
             await loadAccounts();
+        } catch (e) {
+            console.warn('loadAccounts error:', e);
+        }
+
+        try {
             await loadPendingAccounts();
+        } catch (e) {
+            console.warn('loadPendingAccounts error:', e);
+        }
+
+        try {
             await loadProjectOptions();
-        } catch (error) {
-            toast('error', 'Không thể tải trang nhân sự', error.message);
+        } catch (e) {
+            console.warn('loadProjectOptions error:', e);
         }
     }
 
     init();
 });
 </script>
+
+<!-- Modal Tiếp nhận nhân sự (sp_OnboardNewEmployee) -->
+<div class="modal" id="onboardModal"
+    style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(15,23,42,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center;">
+    <div class="card"
+        style="max-width: 650px; width: 92%; max-height: 90vh; overflow-y: auto; border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.3); border: 1px solid var(--line);">
+        <div class="card-header dashboard-card-title-row"
+            style="padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    Tiếp nhận Nhân sự mới (Onboard)
+                </h2>
+                <p style="margin: 4px 0 0; font-size: 0.8rem; color: #64748b;">
+                    Thực thi Stored Procedure <code>sp_OnboardNewEmployee</code> đảm bảo toàn vẹn dữ liệu (Atomicity).
+                </p>
+            </div>
+            <button class="btn btn-sm btn-light" type="button" id="btnCloseOnboardModal"
+                style="font-size: 1.2rem; line-height: 1; padding: 4px 10px; border-radius: 8px;">✕</button>
+        </div>
+
+        <form id="onboardForm" style="padding: 24px;">
+            <div
+                style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-size: 0.85rem; color: #1e40af; line-height: 1.6;">
+
+                • <strong>Test Rollback (Lỗi):</strong> Nhập Lương hợp đồng <code>&lt;= 0</code> (vd:
+                <code>-5000000</code> hoặc <code>0</code>) → Bị chặn bởi ràng buộc toàn vẹn
+                <code>chk_contract_salary &gt; 0</code>, Procedure tự động ROLLBACK toàn bộ.<br>
+                • <strong>Test Commit (Thành công):</strong> Nhập Lương hợp đồng hợp lệ (vd: <code>15000000</code>) → Cả
+                Nhân viên và Hợp đồng được lưu thành công trong 1 giao tác.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Họ và tên nhân sự <span
+                            style="color:red;">*</span></label>
+                    <input class="form-control" type="text" id="onboardFullName" name="full_name" required
+                        placeholder="VD: Lê Hoàng Nam" style="width:100%;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Email đăng nhập <span
+                            style="color:red;">*</span></label>
+                    <input class="form-control" type="email" id="onboardEmail" name="email" required
+                        placeholder="VD: nam.le@agency.vn" style="width:100%;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Mã nhân viên <span
+                            style="color:red;">*</span></label>
+                    <input class="form-control" type="text" id="onboardEmpCode" name="employee_code" required
+                        value="EMP-2026-09" style="width:100%;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Phòng ban <span
+                            style="color:red;">*</span></label>
+                    <select class="form-select" id="onboardDeptSelect" name="department_id" required
+                        style="width:100%;">
+                        <option value="1">Ban Quản Trị Hệ Thống</option>
+                        <option value="2">Account Department</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Chức vụ <span
+                            style="color:red;">*</span></label>
+                    <select class="form-select" id="onboardPosSelect" name="position_id" required style="width:100%;">
+                        <option value="1">Director</option>
+                        <option value="2">Manager</option>
+                        <option value="3">Designer</option>
+                        <option value="4">Developer</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">
+                        Mức lương hợp đồng (VNĐ) <span style="color:red;">*</span>
+                    </label>
+                    <input class="form-control" type="number" id="onboardSalary" name="salary" required value="15000000"
+                        step="500000" style="width:100%; font-weight:700; color:#0f766e; font-size: 1.05rem;">
+                    <small style="color: #64748b; font-size: 0.78rem; display: block; margin-top: 4px;">
+                        Gợi ý: Nhập số &lt;= 0 để xem MySQL Trigger & Stored Procedure kích hoạt ROLLBACK.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Loại hợp đồng</label>
+                    <select class="form-select" id="onboardContractType" name="contract_type" style="width:100%;">
+                        <option value="probation">Thử việc (Probation)</option>
+                        <option value="fixed_term">Xác định thời hạn</option>
+                        <option value="indefinite">Không thời hạn</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Ngày bắt đầu</label>
+                    <input class="form-control" type="date" id="onboardHireDate" name="hire_date"
+                        value="<?php echo date('Y-m-d'); ?>" style="width:100%;">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-light" type="button" id="btnCancelOnboard">Hủy</button>
+                <button class="btn btn-primary" type="submit" id="btnSubmitOnboard"
+                    style="padding: 10px 24px; font-weight: 700;">
+                    Xác nhận
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php
 // Tích hợp components/modal.php để giao diện JS có chỗ render UI Kính lúp

@@ -43,12 +43,13 @@
     --shadow-lg: 0 28px 80px rgba(15, 23, 42, 0.14);
     --shadow-primary: 0 18px 45px rgba(0, 81, 58, 0.22);
 
-    --sidebar-width: 288px;
+    --sidebar-width: 240px;
     --topbar-height: 72px;
 }
 
 html {
     background: var(--background);
+    scrollbar-gutter: stable;
 }
 
 body {

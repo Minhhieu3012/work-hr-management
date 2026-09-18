@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Duyệt nhân sự | Work & HR Management System';
+$pageTitle = 'Duyệt nhân sự | Work & HR Management';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-approve-accounts';
 $topbarTitle = 'Duyệt nhân sự';
-$brandName = 'Work & HR Management System';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>

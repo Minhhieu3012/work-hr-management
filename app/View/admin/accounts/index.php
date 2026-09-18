@@ -1,10 +1,10 @@
 <?php
-$pageTitle = 'Danh sách tài khoản | Work & HR Management System';
+$pageTitle = 'Danh sách tài khoản | Work & HR Management';
 $pageCss = ['dashboard.css', 'hrm.css'];
 $pageJs = ['admin.js'];
 $activeMenu = 'admin-accounts';
 $topbarTitle = 'Danh sách tài khoản';
-$brandName = 'Work & HR Management System';
+$brandName = 'Work & HR Management';
 
 ob_start();
 ?>

@@ -425,12 +425,67 @@ class EmployeeController {
         }
     }
 
+    private function ensureProcedureExists(): void {
+        try {
+            $db = \Core\Database::getConnection();
+            $db->exec("DROP PROCEDURE IF EXISTS sp_OnboardNewEmployee");
+            $db->exec("
+                CREATE PROCEDURE sp_OnboardNewEmployee(
+                    IN p_dept_id INT, 
+                    IN p_pos_id INT, 
+                    IN p_emp_code VARCHAR(50), 
+                    IN p_full_name VARCHAR(100), 
+                    IN p_email VARCHAR(100), 
+                    IN p_password VARCHAR(255), 
+                    IN p_hire_date DATE,
+                    IN p_salary DECIMAL(15,2)
+                )
+                BEGIN
+                    DECLARE v_emp_id INT;
+                    
+                    DECLARE EXIT HANDLER FOR 1062
+                    BEGIN
+                        ROLLBACK;
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Email hoặc Mã NV đã tồn tại!';
+                    END;
+                    
+                    DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+                    BEGIN
+                        ROLLBACK;
+                        RESIGNAL; 
+                    END;
+                    
+                    START TRANSACTION;
+                    
+                    IF p_salary IS NULL OR p_salary <= 0 THEN
+                        ROLLBACK;
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Lương hợp đồng phải lớn hơn 0 (Vi phạm ràng buộc chk_contract_salary)! Giao tác đã tự động ROLLBACK.';
+                    END IF;
+                    
+                    INSERT INTO employees (department_id, position_id, employee_code, full_name, email, password, hire_date)
+                    VALUES (p_dept_id, p_pos_id, p_emp_code, p_full_name, p_email, p_password, p_hire_date);
+                    
+                    SET v_emp_id = LAST_INSERT_ID();
+                    
+                    INSERT INTO employee_contracts (employee_id, contract_code, contract_type, start_date, salary, status)
+                    VALUES (v_emp_id, CONCAT('HD-', p_emp_code), 'probation', p_hire_date, p_salary, 'active');
+                    
+                    COMMIT;
+                END
+            ");
+        } catch (\Throwable $e) {
+            error_log("Procedure init error: " . $e->getMessage());
+        }
+    }
+
     public function store(): void {
         try {
+            $this->ensureProcedureExists();
             $authUser = $this->requireRole(['admin', 'manager']);
             $input = $this->getInput();
 
-            if ($authUser['role'] === 'manager') {
+            // Nếu là Manager tạo tài khoản thường chờ duyệt (không có thông tin hợp đồng / lương)
+            if ($authUser['role'] === 'manager' && !isset($input['salary']) && !isset($input['contract_salary'])) {
                 $this->storeAccount();
                 return;
             }

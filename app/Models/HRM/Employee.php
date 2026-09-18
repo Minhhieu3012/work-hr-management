@@ -515,13 +515,14 @@ class Employee {
             ':salary'    => $contractData['salary']
         ]);
         
-        // Vì SP đã làm hết mọi việc (tạo NV, tạo HĐ), ta chỉ cần lấy ID vừa tạo (nếu cần)
-        $stmtId = $pdo->query("SELECT id FROM employees WHERE email = '{$prepared['email']}' LIMIT 1");
+        // Vì SP đã làm hết mọi việc (tạo NV, tạo HĐ), ta lấy ID vừa tạo
+        $stmtId = $pdo->prepare("SELECT id FROM employees WHERE email = :email LIMIT 1");
+        $stmtId->execute([':email' => $prepared['email']]);
         $employeeId = (int)$stmtId->fetchColumn();
 
         return [
             'employee_id' => $employeeId,
-            'contract_id' => null, // Hoặc query ra nếu UI cần thiết
+            'contract_id' => null,
         ];
     });
 }
